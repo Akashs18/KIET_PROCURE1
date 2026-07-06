@@ -1012,7 +1012,13 @@ const safeUpload = (req, res, next) => {
 
 app.post("/order_raise", safeUpload, async (req, res) => {
   console.log("▶ /order_raise called");
-   const {
+
+  // 🔹 1. Session validation — first, before any DB work
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, error: "Not authenticated" });
+  }
+
+  const {
     projectName,
     projectCodeNumber,
     supplierName,
@@ -1030,34 +1036,7 @@ app.post("/order_raise", safeUpload, async (req, res) => {
     billingAddress
   } = req.body;
 
-    
-  // 🔹 2. Precondition check (with correct row access)
-  const precond = await pool.query(
-    `SELECT * FROM project_info WHERE project_code = $1`,
-    [projectCodeNumber]
-  );
-
-  if (!precond.rows.length) {
-    return res.status(404).json({ success: false, error: "Project not found" });
-  }
-
-  if (precond.rows[0].remaining_cost < 15) {
-  return res.status(400).json({
-    success: false,
-    error: "Budget Exceeded",
-    remaining: precond.rows[0].remaining_cost,  // send actual value
-    required: 15
-  });
-}
-
-
-  // 🔹 1. Session validation
-  if (!req.session.user) {
-    return res.status(401).json({ success: false, error: "Not authenticated" });
-  }
-
- 
-  // 🔹 2. Build products array (since frontend sends each field as an array)
+  // 🔹 2. Build products array
   let products = [];
   try {
     if (Array.isArray(req.body.partNo)) {
@@ -1073,9 +1052,25 @@ app.post("/order_raise", safeUpload, async (req, res) => {
           discount: req.body.discount[i],
         });
       }
+    } else if (req.body.partNo) {
+      // single product submitted as plain fields, not arrays
+      products.push({
+        partNo: req.body.partNo,
+        description: req.body.description,
+        hsn: req.body.hsn,
+        quantity: req.body.quantity,
+        unitPrice: req.body.unitPrice,
+        gst: req.body.gst,
+        unit: req.body.unit,
+        discount: req.body.discount,
+      });
     }
   } catch (err) {
     return res.status(400).json({ success: false, error: "Invalid product fields" });
+  }
+
+  if (!products.length) {
+    return res.status(400).json({ success: false, error: "No products submitted" });
   }
 
   console.log("🔥 Products:", products);
@@ -1085,27 +1080,53 @@ app.post("/order_raise", safeUpload, async (req, res) => {
   const contact = phone;
   const single = singleSupplier === "on";
 
+  // 🔹 3. Calculate total BEFORE touching the DB
+  let totalAmount = 0;
+  products.forEach((p) => {
+    const unitPrice = parseFloat(p.unitPrice) || 0;
+    const discount = parseFloat(p.discount) || 0;
+    const quantity = parseInt(p.quantity) || 0;
+    const gst = parseFloat(p.gst) || 0;
+
+    const amount = quantity * unitPrice;
+    const afterDiscount = amount - discount;
+    const gstAmt = afterDiscount * (gst / 100);
+
+    totalAmount += afterDiscount + gstAmt;
+  });
+
   try {
     console.log("▶ BEGIN TRANSACTION");
     await pool.query("BEGIN");
 
+    // 🔹 4. Lock the project row and check budget INSIDE the transaction
+    const budgetResult = await pool.query(
+      `SELECT remaining_budget
+       FROM project_info
+       WHERE project_code = $1
+       FOR UPDATE`,
+      [projectCodeNumber]
+    );
+
+    if (!budgetResult.rows.length) {
+      await pool.query("ROLLBACK");
+      return res.status(404).json({ success: false, error: "Project not found" });
+    }
+
+    const remainingBudget = Number(budgetResult.rows[0].remaining_budget);
+
+    if (remainingBudget < totalAmount) {
+      await pool.query("ROLLBACK");
+      return res.status(400).json({
+        success: false,
+        error: "Budget Exceeded",
+        remaining: remainingBudget,
+        required: totalAmount
+      });
+    }
+
     // 🔹 Generate PO number
     const purchaseOrderNumber = await generatePurchaseOrderNumber();
-
-    // 🔹 Calculate total
-    let totalAmount = 0;
-    products.forEach((p) => {
-      const unitPrice = parseFloat(p.unitPrice) || 0;
-      const discount = parseFloat(p.discount) || 0;
-      const quantity = parseInt(p.quantity) || 0;
-      const gst = parseFloat(p.gst) || 0;
-
-      const amount = quantity * unitPrice;
-      const afterDiscount = amount - discount;
-      const gstAmt = afterDiscount * (gst / 100);
-
-      totalAmount += afterDiscount + gstAmt;
-    });
 
     // 🔹 Insert purchase order
     const orderInsert = await pool.query(
@@ -1113,31 +1134,14 @@ app.post("/order_raise", safeUpload, async (req, res) => {
       (project_name, project_code_number, purchase_order_number, supplier_name,
        supplier_gst, supplier_address, shipping_address, urgency, date_required,
        notes, ordered_by, quotation_file, total_amount, reference_no, contact,
-       single, terms_of_payment,currency,raised_amount,billing_address)
+       single, terms_of_payment, currency, raised_amount, billing_address)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
       RETURNING id`,
       [
-        projectName,
-        projectCodeNumber,
-        purchaseOrderNumber,
-        supplierName,
-        supplierGst,
-        supplierAddress,
-        shippingAddress,
-        urgency,
-        dateRequired,
-        notes,
-        orderedBy,
-        quotationFile,
-        totalAmount,
-        reference_no,
-        contact,
-        single,
-        termsOfPayment,
-        currency,
-        totalAmount,
-        billingAddress
-
+        projectName, projectCodeNumber, purchaseOrderNumber, supplierName,
+        supplierGst, supplierAddress, shippingAddress, urgency, dateRequired,
+        notes, orderedBy, quotationFile, totalAmount, reference_no, contact,
+        single, termsOfPayment, currency, totalAmount, billingAddress
       ]
     );
 
@@ -1151,39 +1155,24 @@ app.post("/order_raise", safeUpload, async (req, res) => {
          unit_price, gst, project_name, discount, unit)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
         [
-          orderId,
-          p.partNo,
-          p.description,
-          p.hsn,
-          parseInt(p.quantity),
-          parseFloat(p.unitPrice),
-          parseFloat(p.gst),
-          projectName,
-          parseFloat(p.discount),
-          p.unit,
+          orderId, p.partNo, p.description, p.hsn,
+          parseInt(p.quantity), parseFloat(p.unitPrice), parseFloat(p.gst),
+          projectName, parseFloat(p.discount), p.unit,
         ]
       );
     }
 
+    // 🔹 Deduct budget in the SAME transaction, using the locked row's value
+    const newRemaining = remainingBudget - totalAmount;
+    await pool.query(
+      `UPDATE project_info SET remaining_budget = $1 WHERE project_code = $2`,
+      [newRemaining, projectCodeNumber]
+    );
+
     await pool.query("COMMIT");
-    console.log("✔ DB Transaction committed");
-    const result3=await pool.query(`select remaining_budget from project_info where project_code=$1`,[projectCodeNumber]);
-    const remain_b=result3.rows[0].remaining_budget;
-    const calc=remain_b-totalAmount;
-    const result4=await pool.query(`update project_info  set remaining_budget=$1 where project_code=$2`,[calc,projectCodeNumber]);
-    
-    
-    console.log("result rows",result3.rows[0])
+    console.log("✔ DB Transaction committed. New remaining budget:", newRemaining);
 
-
-
-    // 🔹 Send email
-    
-
-    // 🔹 Final response
-    return res.json({ success: true, message: "✅ Order submitted successfully",poId: orderId });
-
-
+    return res.json({ success: true, message: "✅ Order submitted successfully", poId: orderId });
 
   } catch (err) {
     console.error("❌ ERROR:", err);
@@ -8666,80 +8655,102 @@ app.get('/view-project/:id', async (req, res) => {
 
 
 app.get('/approve-project/:id', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).send("Not authenticated");
+  }
+
+  const { id } = req.params;
+  const transporter = nodemailer.createTransport({
+    host: "smtp.office365.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: "No-reply@kietsindia.com",
+      pass: process.env.NO_PASSWORD,
+    },
+    tls: { rejectUnauthorized: false },
+  });
+
+  let project_code;
+
   try {
-    const { id } = req.params;
+    await pool.query("BEGIN");
+
     const itemsResult = await pool.query(
-      `SELECT * 
-       FROM purchase_orders
-       WHERE id = $1`,
-      [id]
-    );
-    console.log("Items result:", itemsResult.rows);
-    console.log("Project code:", itemsResult.rows[0].project_code_number);
-    const project_code=itemsResult.rows[0].project_code_number;
-    const raised_amt=itemsResult.rows[0].total_amount;
-    const raised_amount=raised_amt-raised_amt*0.18;
-    const itemResult2=await pool.query(
-      `SELECT remaining_cost FROM project_info WHERE project_code = $1`,[project_code])
-    await pool.query(
-      `
-      UPDATE purchase_orders
-      SET assign_status = 'verified'
-      WHERE id = $1
-      `,
+      `SELECT * FROM purchase_orders WHERE id = $1 FOR UPDATE`,
       [id]
     );
 
-    const updatedRemainingCost=itemResult2.rows[0].remaining_cost-raised_amount;
-    await pool.query(
-      `
-      UPDATE project_info
-      SET remaining_cost = $1
-      WHERE project_code = $2
-      `,
-      [updatedRemainingCost,project_code]
+    if (!itemsResult.rows.length) {
+      await pool.query("ROLLBACK");
+      return res.status(404).send("Purchase order not found");
+    }
+
+    const po = itemsResult.rows[0];
+
+    if (po.assign_status === 'verified') {
+      await pool.query("ROLLBACK");
+      return res.status(409).send("This order has already been approved");
+    }
+
+    project_code = po.project_code_number;
+    const raised_amt = Number(po.total_amount);
+    const raised_amount = raised_amt - raised_amt * 0.18;
+
+    const projectResult = await pool.query(
+      `SELECT remaining_cost FROM project_info WHERE project_code = $1 FOR UPDATE`,
+      [project_code]
     );
 
- const transporter = nodemailer.createTransport({
-      host: "smtp.office365.com",
-      port: 587,
-      secure: false, // STARTTLS
-      auth: {
-        user: "No-reply@kietsindia.com",
-        pass: process.env.NO_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+    if (!projectResult.rows.length) {
+      await pool.query("ROLLBACK");
+      return res.status(404).send("Project not found");
+    }
 
-    
+    const updatedRemainingCost = Number(projectResult.rows[0].remaining_cost) - raised_amount;
+
+    await pool.query(
+      `UPDATE purchase_orders SET assign_status = 'verified' WHERE id = $1`,
+      [id]
+    );
+
+    await pool.query(
+      `UPDATE project_info SET remaining_cost = $1 WHERE project_code = $2`,
+      [updatedRemainingCost, project_code]
+    );
+
+    await pool.query("COMMIT");
+
+  } catch (err) {
+    console.error(err);
+    await pool.query("ROLLBACK").catch(() => {});
+    return res.status(500).send("Approval failed");
+  }
+
+  try {
     const mailSubject = "New Order Approve Request - Action Required";
     const mailBody = `
-  <p>Hello Purchase Team,</p>
-  <p>We received a request to approve a purchase order for project ${project_code}.</p>
-  <p>Please review and approve the purchase order at your earliest convenience.</p>
-  <p>Thank you,<br>The KIET Technologies Team</p>
-`;
+      <p>Hello Purchase Team,</p>
+      <p>We received a request to approve a purchase order for project ${project_code}.</p>
+      <p>Please review and approve the purchase order at your earliest convenience.</p>
+      <p>Thank you,<br>The KIET Technologies Team</p>
+    `;
 
     await transporter.sendMail({
-      from: '"KIET Technologies" <no-reply@kietsindia.com>', // display name + Office 365 email
+      from: '"KIET Technologies" <no-reply@kietsindia.com>',
       to: 'purchase@kietsindia.com',
       subject: mailSubject,
       html: mailBody,
     });
-
-
-    res.send(`
-      <h2 style="color:green;">✅ Project Approved Successfully</h2>
-      <p>Project ID: <b>${id}</b></p>
-      <p>You may now close this window.</p>
-    `);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Approval failed");
+  } catch (mailErr) {
+    console.error("Approval succeeded but email failed:", mailErr);
   }
+
+  return res.send(`
+    <h2 style="color:green;">✅ Project Approved Successfully</h2>
+    <p>Project ID: <b>${id}</b></p>
+    <p>You may now close this window.</p>
+  `);
 });
 
 
