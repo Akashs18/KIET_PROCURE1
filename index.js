@@ -9591,9 +9591,9 @@ app.put("/api/reassign-budget/:project_code", async (req, res) => {
       return res.status(400).json({ message: "Invalid budget value" });
     }
 
-    // ✅ Step 1: Get existing budget
+    // ✅ Step 1: Get existing values
     const result = await pool.query(
-      `SELECT budget FROM project_info WHERE id = $1`,
+      `SELECT budget, remaining_cost, remaining_budget FROM project_info WHERE id = $1`,
       [project_code]
     );
 
@@ -9601,22 +9601,24 @@ app.put("/api/reassign-budget/:project_code", async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    const old_budget = result.rows[0].budget || 0;
-    const old_remaining_cost = result.rows[0].remaining_cost || 0;
+    const old_budget = Number(result.rows[0].budget) || 0;
+    const old_remaining_cost = Number(result.rows[0].remaining_cost) || 0;
+    const old_remaining_budget = Number(result.rows[0].remaining_budget) || 0;
 
-    // ✅ Step 2: Calculate new budget
-    const updated_budget = Number(old_budget) + Number(new_budget);
-    const updated_remaining_cost = Number(old_remaining_cost) + Number(new_budget);
+    // ✅ Step 2: Calculate new values independently
+    const updated_budget = old_budget + Number(new_budget);
+    const updated_remaining_cost = old_remaining_cost + Number(new_budget);
+    const updated_remaining_budget = old_remaining_budget + Number(new_budget);
 
-    // ✅ Step 3: Update budget + remaining_cost
+    // ✅ Step 3: Update all three columns correctly
     const updateResult = await pool.query(
       `UPDATE project_info
        SET budget = $1,
-           remaining_cost = $3,
+           remaining_cost = $2,
            remaining_budget = $3
-       WHERE id = $2
-       RETURNING id, budget, remaining_cost`,
-      [updated_budget, project_code,updated_remaining_cost]
+       WHERE id = $4
+       RETURNING id, budget, remaining_cost, remaining_budget`,
+      [updated_budget, updated_remaining_cost, updated_remaining_budget, project_code]
     );
 
     return res.json({
