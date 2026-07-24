@@ -1164,10 +1164,10 @@ app.post("/order_raise", safeUpload, async (req, res) => {
 
     // 🔹 Deduct budget in the SAME transaction, using the locked row's value
     const newRemaining = remainingBudget - totalAmount;
-    await pool.query(
-      `UPDATE project_info SET remaining_budget = $1 WHERE project_code = $2`,
-      [newRemaining, projectCodeNumber]
-    );
+    // await pool.query(
+    //   `UPDATE project_info SET remaining_budget = $1 WHERE project_code = $2`,
+    //   [newRemaining, projectCodeNumber]
+    // );
 
     await pool.query("COMMIT");
     console.log("✔ DB Transaction committed. New remaining budget:", newRemaining);
@@ -7940,7 +7940,7 @@ app.put("/api/assign_to", async (req, res) => {
         assigned_on = CURRENT_TIMESTAMP,
         budget= $2,
         target_date=$3,
-        remaining_cost=$4
+        remaining_budget=$4
       WHERE id = $5
       RETURNING *
     `;  
@@ -7976,13 +7976,13 @@ app.get("/api/know_budget/:project_code", async (req, res) => {
     const project_code = req.params.project_code;
     console.log("Project code received:", project_code);
     const result = await pool.query(
-      `SELECT remaining_cost FROM project_info WHERE project_code = $1 ORDER BY id DESC LIMIT 1`,
+      `SELECT remaining_budget FROM project_info WHERE project_code = $1 ORDER BY id DESC LIMIT 1`,
       [project_code]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Project not found" });
     }
-    const budget = result.rows[0].remaining_cost;
+    const budget = result.rows[0].remaining_budget;
     res.json({ budget });
   } catch (error) {
     console.error("Error fetching budget:", error);
@@ -8231,7 +8231,8 @@ app.get("/assigned-projects/:userId", async (req, res) => {
         remaining_budget,
         quantity,
         documents,
-        remaining_cost
+        remaining_cost,
+        remaining_budget
 
 
        FROM project_info
@@ -8698,7 +8699,7 @@ app.get('/approve-project/:id', async (req, res) => {
     const raised_amount = raised_amt - raised_amt * 0.18;
 
     const projectResult = await pool.query(
-      `SELECT remaining_cost FROM project_info WHERE project_code = $1 FOR UPDATE`,
+      `SELECT remaining_budget FROM project_info WHERE project_code = $1 FOR UPDATE`,
       [project_code]
     );
 
@@ -8707,7 +8708,7 @@ app.get('/approve-project/:id', async (req, res) => {
       return res.status(404).send("Project not found");
     }
 
-    const updatedRemainingCost = Number(projectResult.rows[0].remaining_cost) - raised_amount;
+    const updatedRemainingBudget = Number(projectResult.rows[0].remaining_budget) - raised_amount;
 
     await pool.query(
       `UPDATE purchase_orders SET assign_status = 'verified' WHERE id = $1`,
@@ -8715,8 +8716,8 @@ app.get('/approve-project/:id', async (req, res) => {
     );
 
     await pool.query(
-      `UPDATE project_info SET remaining_cost = $1 WHERE project_code = $2`,
-      [updatedRemainingCost, project_code]
+      `UPDATE project_info SET remaining_budget = $1 WHERE project_code = $2`,
+      [updatedRemainingBudget, project_code]
     );
 
     await pool.query("COMMIT");
@@ -9618,7 +9619,7 @@ app.put("/api/reassign-budget/:project_code", async (req, res) => {
            remaining_budget = $3
        WHERE id = $4
        RETURNING id, budget, remaining_cost, remaining_budget`,
-      [updated_budget, updated_remaining_cost, updated_remaining_budget, project_code]
+      [updated_budget, updated_remaining_budget, updated_remaining_budget, project_code]
     );
 
     return res.json({
