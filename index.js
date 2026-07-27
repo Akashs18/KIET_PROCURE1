@@ -60,8 +60,8 @@ const pool = new Pool({
   user: "postgres",
   host: "13.234.3.0",
   database: "mydb",
-  password:process.env.DB_PASSWORD,
-  // password:'KIET@tech123',
+  // password:process.env.DB_PASSWORD,
+  password:'KIET@tech123',
     port: 5432,
 });
 app.use('/qt_uploads', express.static(path.join(__dirname, 'qt_uploads')));
@@ -1115,7 +1115,7 @@ app.post("/order_raise", safeUpload, async (req, res) => {
 
     const remainingBudget = Number(budgetResult.rows[0].remaining_budget);
 
-    if (remainingBudget < totalAmount) {
+    if (remainingBudget < (totalAmount-(totalAmount*0.18))) {
       await pool.query("ROLLBACK");
       return res.status(400).json({
         success: false,
@@ -9583,7 +9583,6 @@ app.delete("/api/materials/:id", async (req, res) => {
 app.put("/api/reassign-budget/:project_code", async (req, res) => {
   const { project_code } = req.params;
   const { new_budget } = req.body;
-
   console.log("Reassigning budget for project:", project_code, "New budget:", new_budget);
 
   try {
