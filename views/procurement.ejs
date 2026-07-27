@@ -7590,7 +7590,7 @@ ${order.status?.toLowerCase() === "pending"
                 return;
             }
             
-
+// addition of checkbox from 7614 7615
             approvedQuotations.forEach(quotation => {
                 console.log("Rendering approved quotation:", quotation);
                 const card = document.createElement('div');
@@ -7610,9 +7610,17 @@ ${order.status?.toLowerCase() === "pending"
                         <p><strong>Payment  : </strong>  ${ quotation.paymentterms}</p>
                         <p><strong>Delivery Duration : </strong> ${ quotation.deliveryduration}</p>
                         <p><strong>Total:</strong> ${quotation.currency === 'INR' ? '₹' : '$'}${quotation.totalamount}</p>
+                        
+                        <label for='selectQuote_${quotation.id}'>PO Recieved</label>
+                        <input type='checkbox' id='selectQuote_${quotation.id}' name='selectQuote' value='${quotation.id}'>
+                        <label for='selectQuote_${quotation.id}'>PO Recieved</label>
+                        <input type='checkbox' id='selectQuote_${quotation.id}' name='selectQuote' value='${quotation.id}'>
+                        <label for='selectQuote_${quotation.id}'>PO Recieved</label>
+                        <input type='checkbox' id='selectQuote_${quotation.id}' name='selectQuote' value='${quotation.id}'>
 
                     </div>
                     <div class="status-footer">
+
                         <button class="btn btn-primary download-btn" data-id="${quotation.id}">Download PDF</button>
                         <i class='fa-solid fa-edit edit-icon' style='margin-left: 10px; cursor: pointer;' data-id="${quotation.id}" onclick='editQuote(${quotation.id})'> Revise</i>
                     </div>
