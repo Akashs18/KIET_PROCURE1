@@ -5618,6 +5618,244 @@ let currencySymbol = '₹';
                 </div>
             </div>
 
+            <!-- ── PDF Preview Modal ── -->
+            <div id="pdfPreviewModal" style="
+                display:none;
+                position:fixed;
+                inset:0;
+                background:rgba(0,0,0,0.75);
+                z-index:3000;
+                display:none;
+                align-items:center;
+                justify-content:center;
+                padding:16px;
+            ">
+                <div style="
+                    background:#fff;
+                    border-radius:12px;
+                    width:min(95vw,1000px);
+                    height:90vh;
+                    display:flex;
+                    flex-direction:column;
+                    overflow:hidden;
+                    box-shadow:0 24px 64px rgba(0,0,0,0.45);
+                ">
+                    <!-- Modal header -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #e2e8f0;flex-shrink:0">
+                        <div style="font-weight:700;font-size:16px;color:#0f172a" id="pdfPreviewTitle">Quotation Preview</div>
+                        <div style="display:flex;gap:10px;align-items:center">
+                            <button id="pdfDownloadBtn" onclick="downloadFromPreview()" style="
+                                background:#2563eb;color:#fff;border:none;border-radius:8px;
+                                padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;
+                                display:flex;align-items:center;gap:6px;
+                            "><i class='fa-solid fa-download'></i> Download PDF</button>
+                            <button onclick="closePdfPreview()" style="
+                                background:#f1f5f9;border:none;border-radius:8px;
+                                padding:8px 12px;font-size:18px;cursor:pointer;line-height:1;
+                            ">✕</button>
+                        </div>
+                    </div>
+                    <!-- PDF iframe -->
+                    <iframe id="pdfPreviewFrame"
+                        src=""
+                        style="flex:1;border:none;width:100%;"
+                        title="PDF Preview">
+                    </iframe>
+                </div>
+            </div>
+
+            <!-- Revise Quotation Modal -->
+            <div id="reviseQuotationModal" style="
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.6);
+                z-index: 2000;
+                overflow-y: auto;
+                padding: 20px;
+            ">
+                <div style="
+                    max-width: 1100px;
+                    margin: 20px auto;
+                    background: #fff;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+                    overflow: hidden;
+                ">
+                    <!-- Modal Header -->
+                    <div style="
+                        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                        color: white;
+                        padding: 20px 30px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.4rem;"><i class="fas fa-edit"></i> Revise Quotation</h3>
+                            <p style="margin: 5px 0 0; opacity: 0.85; font-size: 0.9rem;" id="reviseQuoteNumber"></p>
+                        </div>
+                        <button onclick="closeReviseQuotationModal()" style="
+                            background: rgba(255,255,255,0.2);
+                            border: none;
+                            color: white;
+                            width: 36px;
+                            height: 36px;
+                            border-radius: 50%;
+                            font-size: 18px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">&times;</button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div style="padding: 30px;">
+                        <input type="hidden" id="rqId" />
+                        <input type="hidden" id="rqQuotationType" />
+
+                        <!-- Quotation Info -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="color: #1e293b; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                                <i class="fas fa-info-circle" style="color: #3b82f6;"></i> Quotation Information
+                            </h4>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Quotation Number</label>
+                                        <input type="text" id="rqQuotationNumber" readonly style="background: #f1f5f9; cursor: not-allowed;" />
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Quotation Date</label>
+                                        <input type="date" id="rqQuotationDate" />
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Valid Until</label>
+                                        <input type="date" id="rqValidUntil" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Currency</label>
+                                        <select id="rqCurrency">
+                                            <option value="INR">INR</option>
+                                            <option value="USD">USD</option>
+                                            <option value="EUR">EUR</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Payment Terms</label>
+                                        <input type="text" id="rqPaymentTerms" placeholder="e.g., 50% advance, 50% on delivery" />
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Delivery Duration</label>
+                                        <input type="text" id="rqDeliveryDuration" placeholder="e.g., 2-4 weeks" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Client Info -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="color: #1e293b; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                                <i class="fas fa-users" style="color: #3b82f6;"></i> Client &amp; Company Information
+                            </h4>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Company Name</label>
+                                        <input type="text" id="rqCompanyName" placeholder="Company name" />
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Client Name</label>
+                                        <input type="text" id="rqClientName" placeholder="Client name" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Client Email</label>
+                                        <input type="email" id="rqClientEmail" placeholder="client@example.com" />
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label>Notes</label>
+                                        <textarea id="rqNotes" rows="2" placeholder="Additional notes"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items Table -->
+                        <div style="margin-bottom: 25px;">
+                            <h4 style="color: #1e293b; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <span><i class="fas fa-boxes" style="color: #3b82f6;"></i> Items &amp; Services</span>
+                                <button type="button" onclick="addRQItemRow()" class="btn btn-secondary btn-small" style="font-size: 0.85rem;">
+                                    <i class="fas fa-plus"></i> Add Row
+                                </button>
+                            </h4>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                                    <thead>
+                                        <tr style="background: #f1f5f9;">
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">#</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Part No</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Description</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">HSN</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">GST%</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Qty</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Unit</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Unit Price</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Discount</th>
+                                            <th style="padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Total</th>
+                                            <th style="padding: 10px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rqItemsTableBody">
+                                        <!-- items populated dynamically -->
+                                    </tbody>
+                                    <tfoot>
+                                        <tr style="background: #f8fafc; font-weight: 700;">
+                                            <td colspan="9" style="padding: 12px; text-align: right;">Grand Total:</td>
+                                            <td style="padding: 12px;" id="rqGrandTotal">0.00</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                            <button type="button" onclick="closeReviseQuotationModal()" class="btn btn-secondary" style="padding: 10px 24px;">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="button" onclick="saveRevisedQuotation()" class="btn btn-primary" style="padding: 10px 24px; background: linear-gradient(135deg, #10b981, #059669);">
+                                <i class="fas fa-save"></i> Save Revised Quotation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Assigned Project Tab -->
             <div class="tab-content" id="assigned-project">
                 <div class="tab-header">
@@ -7618,35 +7856,32 @@ ${order.status?.toLowerCase() === "pending"
                         <p><strong>Payment  : </strong>  ${ quotation.paymentterms}</p>
                         <p><strong>Delivery Duration : </strong> ${ quotation.deliveryduration}</p>
                         <p><strong>Total:</strong> ${quotation.currency === 'INR' ? '₹' : '$'}${quotation.totalamount}</p>
+                        <p> <label><input type="checkbox" id="porecived-${quotation.id}" ${quotation.po_received ? 'checked' : ''} onchange="saveQuotationFlag(${quotation.id}, '${quotation.quotation_type}', 'po_received', this.checked)"> PO RECEIVED </label></p>
+                        <p> <label> <input type="checkbox" id="invoiced-${quotation.id}" ${quotation.invoiced ? 'checked' : ''} ${!quotation.po_received ? 'disabled' : ''} onchange="saveQuotationFlag(${quotation.id}, '${quotation.quotation_type}', 'invoiced', this.checked)"> INVOICED</label></p>
+                        <p> <label> <input type="checkbox" id="completed-${quotation.id}" ${quotation.completed ? 'checked' : ''} ${!quotation.invoiced ? 'disabled' : ''} onchange="saveQuotationFlag(${quotation.id}, '${quotation.quotation_type}', 'completed', this.checked)"> COMPLETED</label></p>
+                        <div style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+
+                     <!-- This note section implemented in the card view , it will save the note in the database , need to check how it works. is it under observation due to already existing table header notes.-->
+
+                            <label style="font-weight: 600; font-size: 13px; display: block; margin-bottom: 4px; color: #475569;">Note / Remarks:</label>
+                            <div style="display: flex; gap: 6px;">
+                                <textarea id="note-${quotation.id}" class="form-control" rows="2" placeholder="Add a note..." style="width: 100%; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1; padding: 6px; resize: vertical;">${quotation.note || ''}</textarea>
+                                <button class="btn btn-primary btn-sm" onclick="saveQuotationNote(${quotation.id}, '${quotation.quotation_type}')" style="align-self: flex-end; padding: 6px 12px; height: fit-content; font-size: 12px; white-space: nowrap;">Save Note</button>
+                            </div>
+                        </div>
 
                     </div>
                     <div class="status-footer">
-                        <button class="btn btn-primary download-btn" data-id="${quotation.id}">Download PDF</button>
+                        <button class="btn btn-primary download-btn" data-id="${quotation.id}" data-type="${quotation.quotation_type}"><i class='fa-solid fa-eye'></i> View PDF</button>
                         <i class='fa-solid fa-edit edit-icon' style='margin-left: 10px; cursor: pointer;' data-id="${quotation.id}" onclick='editQuote(${quotation.id})'> Revise</i>
                     </div>
                 `;
 
                 container.appendChild(card);
-                 if (filter === 'mae') {
-                // For MAE filter, the data is already fetched from MAE-specific endpoint
-               card.querySelector('.download-btn').addEventListener('click', function() {
-                    downloadQuotationmae(quotation.id);
-                // For now, keep as is since we fetch from general endpoint for 'all'
-                 });
-            } else if (filter === 'all') {
-                // For all, we might need to fetch from general endpoint or combine
+                // Open PDF preview modal — resolve the correct view/download endpoints by type
                 card.querySelector('.download-btn').addEventListener('click', function() {
-                    downloadQuotation(quotation.id);
-                // For now, keep as is since we fetch from general endpoint for 'all'
-                 });
-            }
-            else if (filter === 'vk') {
-
-                
-                    card.querySelector('.download-btn').addEventListener('click', function() {
-                         view_vk(quotation.id);
-                    });
-                }
+                    viewQuotationPdf(quotation.id, quotation.quotation_type || filter);
+                });
             
 
                 // Add download functionality
@@ -7660,6 +7895,127 @@ ${order.status?.toLowerCase() === "pending"
             
             }
             
+
+        // ── Persist approved quotation checkbox flags ─────────────
+        async function saveQuotationFlag(id, quotationType, field, value) {
+            const type = quotationType === 'vk' ? 'vk' : 'regular';
+            const invoicedEl = document.getElementById(`invoiced-${id}`);
+            const completedEl = document.getElementById(`completed-${id}`);
+
+            if (field === 'po_received') {
+                if (invoicedEl) invoicedEl.disabled = !value;
+                if (completedEl) completedEl.disabled = !value || !(invoicedEl && invoicedEl.checked);
+            } else if (field === 'invoiced') {
+                if (completedEl) completedEl.disabled = !value;
+            }
+
+            try {
+                const res = await fetch(`/api/quotation-flags/${id}?type=${type}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ field, value })
+                });
+                if (!res.ok) throw new Error('Failed to save');
+            } catch (err) {
+                console.error('❌ saveQuotationFlag error:', err);
+                // Revert checkbox if save failed
+                const el = document.getElementById(`${field.replace('_', '')}-${id}`) ||
+                           document.getElementById(`${field}-${id}`);
+                if (el) el.checked = !value;
+
+                if (field === 'po_received') {
+                    if (invoicedEl) invoicedEl.disabled = value;
+                    if (completedEl) completedEl.disabled = value || !(invoicedEl && invoicedEl.checked);
+                } else if (field === 'invoiced') {
+                    if (completedEl) completedEl.disabled = value;
+                }
+            }
+        }
+
+        async function saveQuotationNote(id, quotationType) {
+            const type = quotationType === 'vk' ? 'vk' : 'regular';
+            const noteEl = document.getElementById(`note-${id}`);
+            const noteVal = noteEl ? noteEl.value : '';
+            try {
+                const res = await fetch(`/api/quotation-flags/${id}?type=${type}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ field: 'note', value: noteVal })
+                });
+                if (!res.ok) throw new Error('Failed to save note');
+                alert('Note saved successfully! ✅');
+            } catch (err) {
+                console.error('❌ saveQuotationNote error:', err);
+                alert('Failed to save note. Please try again.');
+            }
+        }
+
+        // ── PDF Preview Modal helpers ─────────────────────────────
+        let _pdfPreviewQuotationId   = null;
+        let _pdfPreviewQuotationType = null;
+
+        function viewQuotationPdf(id, type) {
+            _pdfPreviewQuotationId   = id;
+            _pdfPreviewQuotationType = type;
+
+            // Resolve the inline-view URL based on quotation type
+            let viewUrl;
+            if (type === 'mae') {
+                viewUrl = `/view-mae-quotation/${id}`;
+            } else if (type === 'vk') {
+                viewUrl = `/view-vk-quotation/${id}`;
+            } else {
+                viewUrl = `/view-quotation/${id}`;
+            }
+
+            const modal  = document.getElementById('pdfPreviewModal');
+            const iframe = document.getElementById('pdfPreviewFrame');
+            const title  = document.getElementById('pdfPreviewTitle');
+
+            iframe.src = viewUrl;
+            title.textContent = 'Quotation Preview';
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePdfPreview() {
+            const modal  = document.getElementById('pdfPreviewModal');
+            const iframe = document.getElementById('pdfPreviewFrame');
+            modal.style.display = 'none';
+            iframe.src = '';   // stop loading
+            document.body.style.overflow = '';
+        }
+
+        async function downloadFromPreview() {
+            const id   = _pdfPreviewQuotationId;
+            const type = _pdfPreviewQuotationType;
+            if (!id) return;
+            if (type === 'mae') {
+                await downloadQuotationmae(id);
+            } else if (type === 'vk') {
+                // VK: fetch blob and trigger download
+                try {
+                    const response = await fetch(`/view-vk-quotation/${id}`);
+                    if (!response.ok) throw new Error('Download failed');
+                    const blob = await response.blob();
+                    const url  = window.URL.createObjectURL(blob);
+                    const a    = document.createElement('a');
+                    a.href = url;
+                    a.download = `quotation_vk_${id}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } catch(e) { alert('Download failed. Please try again.'); }
+            } else {
+                await downloadQuotation(id);
+            }
+        }
+
+        // Close modal when clicking the dark backdrop
+        document.getElementById('pdfPreviewModal').addEventListener('click', function(e) {
+            if (e.target === this) closePdfPreview();
+        });
 
         // Function to download quotation
         async function downloadQuotation(quotationId) {
