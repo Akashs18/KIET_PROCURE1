@@ -29,6 +29,7 @@ import generateVKQuotation from "./vk.js";
 import generateMAEQuotation from "./mae.js";
 import { query } from "express-validator";
 import { sendNotification } from "./routes/pushNotifications.js";
+import initInventoryExtended from "./inventoryExtended.js";
 import { assign } from "nodemailer/lib/shared/index.js";
 const db_pass = process.env.DB_PASSWORD;
 // =============================
@@ -2980,6 +2981,10 @@ app.get("/approved-quotations", async (req, res) => {
         COALESCE(q.total_amount) as totalamount,
         q.status,
         q.created_at,
+        COALESCE(q.po_received, FALSE) as po_received,
+        COALESCE(q.invoiced, FALSE) as invoiced,
+        COALESCE(q.completed, FALSE) as completed,
+        COALESCE(q.note, '') as note,
         'regular' as quotation_type
       FROM quotations q
       LEFT JOIN quotation_items qi ON q.id = qi.quotation_id
@@ -3005,6 +3010,10 @@ app.get("/approved-quotations", async (req, res) => {
         vq.deliveryterms,
         vq.status,
         vq.created_at,
+        COALESCE(vq.po_received, FALSE) as po_received,
+        COALESCE(vq.invoiced, FALSE) as invoiced,
+        COALESCE(vq.completed, FALSE) as completed,
+        COALESCE(vq.note, '') as note,
         'vk' as quotation_type
       FROM vk_quotations vq
       WHERE vq.status = 'approved' AND vq.created_by = $1
@@ -9634,6 +9643,389 @@ app.get('/raise-ticket',  (req, res) => {
   res.render('raise-ticket');
 });
 
+// ═══════════════════════════════════════════════════════════════
+//  STOCK REGISTER ROUTES
+// ═══════════════════════════════════════════════════════════════
+
+// Ensure stock_register table exists on startup
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS stock_register (
+        id           SERIAL PRIMARY KEY,
+        dc_number    TEXT,
+        date         DATE NOT NULL,
+        item_name    TEXT NOT NULL,
+        description  TEXT,
+        project_name TEXT,
+        issued_to    TEXT,
+        opening_qty  NUMERIC(12,3) DEFAULT 0,
+        issues       NUMERIC(12,3) DEFAULT 0,
+        returned     NUMERIC(12,3) DEFAULT 0,
+        closing_qty  NUMERIC(12,3) DEFAULT 0,
+        remarks      TEXT,
+        department   TEXT DEFAULT 'EC LAB',
+        created_at   TIMESTAMPTZ DEFAULT NOW(),
+        updated_at   TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    // Ensure the department column exists in case the table was created previously without it
+    await pool.query(`
+      ALTER TABLE stock_register ADD COLUMN IF NOT EXISTS department TEXT DEFAULT 'EC LAB';
+    `);
+    console.log('✅ stock_register table ready');
+  } catch(err) {
+    console.error('❌ Failed to create or alter stock_register table:', err.message);
+  }
+})();
+
+// Ensure items table exists on startup (item list with opening/closing qty)
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS items (
+        id           SERIAL PRIMARY KEY,
+        name         TEXT UNIQUE NOT NULL,
+        opening_qty  NUMERIC(12,3) DEFAULT 0,
+        closing_qty  NUMERIC(12,3) DEFAULT 0,
+        created_at   TIMESTAMPTZ DEFAULT NOW(),
+        updated_at   TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    console.log('✅ items table ready');
+  } catch(err) {
+    console.error('❌ Failed to create items table:', err.message);
+  }
+})();
+
+// GET all items
+app.get('/api/items', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`SELECT * FROM items ORDER BY name`);
+    res.json(rows);
+  } catch(err) {
+    console.error('Items GET error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST create new item
+app.post('/api/items', async (req, res) => {
+  try {
+    const { name, opening_qty, closing_qty } = req.body;
+    if (!name) return res.status(400).json({ success:false, error:'name required' });
+    const open = parseFloat(opening_qty) || 0;
+    const close = closing_qty !== undefined ? parseFloat(closing_qty) : open;
+    const { rows } = await pool.query(
+      `INSERT INTO items (name, opening_qty, closing_qty) VALUES ($1,$2,$3) RETURNING *`,
+      [name, open, close]
+    );
+    res.json({ success:true, item: rows[0] });
+  } catch(err) {
+    console.error('Items POST error:', err);
+    res.status(500).json({ success:false, error: err.message });
+  }
+});
+
+// PUT update item quantities
+app.put('/api/items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { opening_qty, closing_qty } = req.body;
+    const { rows } = await pool.query(
+      `UPDATE items SET opening_qty=$1, closing_qty=$2, updated_at=NOW() WHERE id=$3 RETURNING *`,
+      [parseFloat(opening_qty)||0, parseFloat(closing_qty)||0, id]
+    );
+    if (!rows.length) return res.status(404).json({ success:false, error:'Item not found' });
+    res.json({ success:true, item: rows[0] });
+  } catch(err) {
+    console.error('Items PUT error:', err);
+    res.status(500).json({ success:false, error:'Internal server error' });
+  }
+});
+
+// GET all stock register entries
+app.get('/api/stock-register', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM stock_register ORDER BY date DESC, id DESC`
+    );
+    res.json(rows);
+  } catch(err) {
+    console.error('SR GET error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST create new stock register entry
+app.post('/api/stock-register', async (req, res) => {
+  try {
+    const {
+      dc_number, date, item_name, description, project_name,
+      issued_to, opening_qty, issues, returned, closing_qty, remarks, department
+    } = req.body;
+
+    if (!item_name || !date) {
+      return res.status(400).json({ success: false, error: 'item_name and date are required' });
+    }
+
+    const calc_closing = Math.max(0,
+      (parseFloat(opening_qty) || 0)
+      - (parseFloat(issues)    || 0)
+      + (parseFloat(returned)  || 0)
+    );
+
+    const { rows } = await pool.query(
+      `INSERT INTO stock_register
+         (dc_number, date, item_name, description, project_name,
+          issued_to, opening_qty, issues, returned, closing_qty, remarks, department)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       RETURNING *`,
+      [
+        dc_number || null,
+        date,
+        item_name,
+        description || null,
+        project_name || null,
+        issued_to || null,
+        parseFloat(opening_qty) || 0,
+        parseFloat(issues)      || 0,
+        parseFloat(returned)    || 0,
+        closing_qty !== undefined ? parseFloat(closing_qty) : calc_closing,
+        remarks || null,
+        department || 'EC LAB'
+      ]
+    );
+
+    // After creating stock entry, update items table to reflect new closing/opening quantities
+    const entry = rows[0];
+    try {
+      const itemRes = await pool.query(`SELECT * FROM items WHERE name ILIKE $1`, [item_name]);
+      const issuesN  = parseFloat(entry.issues)   || 0;
+      const returnedN = parseFloat(entry.returned) || 0;
+      if (itemRes.rows.length) {
+        const it = itemRes.rows[0];
+        const newClosing = (parseFloat(it.closing_qty) || 0) - issuesN + returnedN;
+        await pool.query(`UPDATE items SET closing_qty=$1, updated_at=NOW() WHERE id=$2`, [Math.max(0,newClosing), it.id]);
+      } else {
+        const openN  = parseFloat(entry.opening_qty) || 0;
+        const closeN = parseFloat(entry.closing_qty) || calc_closing;
+        await pool.query(`INSERT INTO items (name, opening_qty, closing_qty) VALUES ($1,$2,$3)`, [item_name, openN, closeN]);
+      }
+    } catch(updateErr) {
+      console.error('Failed to sync items after SR POST:', updateErr);
+    }
+
+    res.json({ success: true, entry: entry });
+  } catch(err) {
+    console.error('SR POST error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// PUT update a stock register entry
+app.put('/api/stock-register/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      dc_number, date, item_name, description, project_name,
+      issued_to, opening_qty, issues, returned, closing_qty, remarks, department
+    } = req.body;
+
+    if (!item_name || !date) {
+      return res.status(400).json({ success: false, error: 'item_name and date are required' });
+    }
+
+    const calc_closing = Math.max(0,
+      (parseFloat(opening_qty) || 0)
+      - (parseFloat(issues)    || 0)
+      + (parseFloat(returned)  || 0)
+    );
+
+    const { rows } = await pool.query(
+      `UPDATE stock_register SET
+         dc_number=$1, date=$2, item_name=$3, description=$4, project_name=$5,
+         issued_to=$6, opening_qty=$7, issues=$8, returned=$9, closing_qty=$10,
+         remarks=$11, department=$12, updated_at=NOW()
+       WHERE id=$13 RETURNING *`,
+      [
+        dc_number || null,
+        date,
+        item_name,
+        description || null,
+        project_name || null,
+        issued_to || null,
+        parseFloat(opening_qty) || 0,
+        parseFloat(issues)      || 0,
+        parseFloat(returned)    || 0,
+        closing_qty !== undefined ? parseFloat(closing_qty) : calc_closing,
+        remarks || null,
+        department || 'EC LAB',
+        id
+      ]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, error: 'Entry not found' });
+    }
+
+    const updated = rows[0];
+    // Sync items: adjust closing_qty by delta of issues/returned and handle item name change
+    try {
+      // fetch previous row to compute deltas
+      const prevRes = await pool.query('SELECT * FROM stock_register WHERE id=$1', [id]);
+      const prev = prevRes.rows[0];
+      const prevIssues = parseFloat(prev.issues) || 0;
+      const prevReturned= parseFloat(prev.returned) || 0;
+      const newIssues = parseFloat(updated.issues) || 0;
+      const newReturned = parseFloat(updated.returned) || 0;
+      const deltaIssues = newIssues - prevIssues;
+      const deltaReturned = newReturned - prevReturned;
+
+      // If item name changed, revert on previous item and apply on new item
+      if ((prev.item_name || '').toLowerCase() !== (updated.item_name || '').toLowerCase()) {
+        // revert previous item
+        const prevItRes = await pool.query('SELECT * FROM items WHERE name ILIKE $1', [prev.item_name]);
+        if (prevItRes.rows.length) {
+          const it = prevItRes.rows[0];
+          const newClosing = (parseFloat(it.closing_qty)||0) + prevIssues - prevReturned; // undo previous impact
+          await pool.query('UPDATE items SET closing_qty=$1, updated_at=NOW() WHERE id=$2', [Math.max(0,newClosing), it.id]);
+        }
+        // apply to new item
+        const newItRes = await pool.query('SELECT * FROM items WHERE name ILIKE $1', [updated.item_name]);
+        if (newItRes.rows.length) {
+          const it = newItRes.rows[0];
+          const newClosing = (parseFloat(it.closing_qty)||0) - newIssues + newReturned;
+          await pool.query('UPDATE items SET closing_qty=$1, updated_at=NOW() WHERE id=$2', [Math.max(0,newClosing), it.id]);
+        } else {
+          const openN = parseFloat(updated.opening_qty)||0;
+          const closeN= parseFloat(updated.closing_qty)||0;
+          await pool.query('INSERT INTO items (name, opening_qty, closing_qty) VALUES ($1,$2,$3)', [updated.item_name, openN, closeN]);
+        }
+      } else {
+        // same item name — adjust by deltas
+        const itRes = await pool.query('SELECT * FROM items WHERE name ILIKE $1', [updated.item_name]);
+        if (itRes.rows.length) {
+          const it = itRes.rows[0];
+          const newClosing = (parseFloat(it.closing_qty)||0) - deltaIssues + deltaReturned;
+          await pool.query('UPDATE items SET closing_qty=$1, updated_at=NOW() WHERE id=$2', [Math.max(0,newClosing), it.id]);
+        }
+      }
+    } catch(syncErr) {
+      console.error('Failed to sync items after SR PUT:', syncErr);
+    }
+
+    res.json({ success: true, entry: updated });
+  } catch(err) {
+    console.error('SR PUT error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// POST record a return — increments returned and closing_qty
+app.post('/api/stock-register/:id/return', async (req, res) => {
+  try {
+    const { id }        = req.params;
+    const { return_qty, remarks } = req.body;
+    const qty = parseFloat(return_qty);
+
+    if (!qty || qty <= 0) {
+      return res.status(400).json({ success: false, error: 'return_qty must be > 0' });
+    }
+
+    // Fetch current row
+    const current = await pool.query('SELECT * FROM stock_register WHERE id=$1', [id]);
+    if (!current.rows.length) {
+      return res.status(404).json({ success: false, error: 'Entry not found' });
+    }
+    const row = current.rows[0];
+
+    const new_returned    = (parseFloat(row.returned)    || 0) + qty;
+    const new_closing_qty = (parseFloat(row.closing_qty) || 0) + qty;
+    const new_remarks     = remarks
+      ? `${row.remarks ? row.remarks + ' | ' : ''}Return: ${qty} — ${remarks}`
+      : row.remarks;
+
+    const { rows } = await pool.query(
+      `UPDATE stock_register
+         SET returned=$1, closing_qty=$2, remarks=$3, updated_at=NOW()
+       WHERE id=$4 RETURNING *`,
+      [new_returned, new_closing_qty, new_remarks, id]
+    );
+
+    // Also sync items table: increase closing_qty for the item
+    try {
+      const srRow = rows[0];
+      const itRes = await pool.query('SELECT * FROM items WHERE name ILIKE $1', [srRow.item_name]);
+      if (itRes.rows.length) {
+        const it = itRes.rows[0];
+        const updatedClosing = (parseFloat(it.closing_qty)||0) + qty;
+        await pool.query('UPDATE items SET closing_qty=$1, updated_at=NOW() WHERE id=$2', [updatedClosing, it.id]);
+      } else {
+        // Insert new item record if missing
+        await pool.query('INSERT INTO items (name, opening_qty, closing_qty) VALUES ($1,$2,$3)', [srRow.item_name, 0, qty]);
+      }
+    } catch(syncErr) {
+      console.error('Failed to sync items after SR RETURN:', syncErr);
+    }
+
+    res.json({ success: true, entry: rows[0], new_closing_qty });
+  } catch(err) {
+    console.error('SR RETURN error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+initInventoryExtended(app, pool);
+
+// ── Quotation status flags migration ──────────────────────────
+(async () => {
+  try {
+    await pool.query(`
+      ALTER TABLE quotations
+        ADD COLUMN IF NOT EXISTS po_received BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS invoiced    BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS completed   BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS note        TEXT DEFAULT '';
+    `);
+    await pool.query(`
+      ALTER TABLE vk_quotations
+        ADD COLUMN IF NOT EXISTS po_received BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS invoiced    BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS completed   BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS note        TEXT DEFAULT '';
+    `);
+    console.log('✅ Quotation status flag and note columns ready');
+  } catch (err) {
+    console.error('❌ Failed to add quotation flag columns:', err.message);
+  }
+})();
+
+// ── PATCH /api/quotation-flags/:id ────────────────────────────
+// Body: { field: 'po_received'|'invoiced'|'completed'|'note', value: ... }
+// Query: ?type=regular|vk   (defaults to regular)
+app.patch('/api/quotation-flags/:id', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not logged in' });
+  const { id } = req.params;
+  const { field, value } = req.body;
+  const quotationType = req.query.type === 'vk' ? 'vk' : 'regular';
+
+  const allowed = ['po_received', 'invoiced', 'completed', 'note'];
+  if (!allowed.includes(field)) return res.status(400).json({ error: 'Invalid field' });
+
+  const table = quotationType === 'vk' ? 'vk_quotations' : 'quotations';
+  try {
+    const val = field === 'note' ? String(value || '') : Boolean(value);
+    await pool.query(
+      `UPDATE ${table} SET ${field} = $1 WHERE id = $2`,
+      [val, parseInt(id)]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Quotation flag update error:', err);
+    res.status(500).json({ error: 'Failed to update flag' });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -540,6 +540,138 @@
     .inner-tab-content.active { display:block; }
 
     /* ═══════════════════════════════════════════
+       STOCK REGISTER — DEPT CARDS
+    ═══════════════════════════════════════════ */
+    .sr2-dept-cards {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .sr2-dept-card {
+      width: 404.8px;
+      height: 168.6px;
+      border-radius: 16px;
+      padding: 28px 28px 22px 28px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.22s cubic-bezier(.4,0,.2,1), box-shadow 0.22s;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+    }
+    .sr2-dept-card:hover {
+      transform: translateY(-5px) scale(1.015);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.2);
+    }
+    .sr2-dept-card::before {
+      content:''; position:absolute; inset:0;
+      background: rgba(255,255,255,0.07);
+      border-radius: inherit;
+    }
+    .sr2-dept-elcab {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+      color: #fff;
+    }
+    .sr2-dept-mech {
+      background: linear-gradient(135deg, #134e4a 0%, #0f766e 60%, #14b8a6 100%);
+      color: #fff;
+    }
+    .sr2-dept-elec {
+      background: linear-gradient(135deg, #78350f 0%, #d97706 60%, #fbbf24 100%);
+      color: #fff;
+    }
+    .sr2-dept-card-icon {
+      font-size: 32px;
+      opacity: 0.85;
+    }
+    .sr2-dept-card-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .sr2-dept-card-sub {
+      font-size: 12.5px;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+    .sr2-dept-card-arrow {
+      position: absolute;
+      right: 24px;
+      bottom: 22px;
+      font-size: 20px;
+      opacity: 0.6;
+      transition: opacity 0.2s, right 0.2s;
+    }
+    .sr2-dept-card:hover .sr2-dept-card-arrow {
+      opacity: 1;
+      right: 18px;
+    }
+
+    /* ═══════════════════════════════════════════
+       STOCK REGISTER — CATEGORY CARDS
+    ═══════════════════════════════════════════ */
+    .sr2-cat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .sr2-cat-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 18px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .sr2-cat-card:hover {
+      border-color: var(--blue);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.13);
+      transform: translateY(-3px);
+    }
+    .sr2-cat-card-icon {
+      font-size: 20px;
+      color: var(--blue);
+      opacity: 0.8;
+    }
+    .sr2-cat-card-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .sr2-cat-card-meta {
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
+    .sr2-cat-card-arrow {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      font-size: 13px;
+      transition: color 0.15s, right 0.15s;
+    }
+    .sr2-cat-card:hover .sr2-cat-card-arrow { color: var(--blue); right: 10px; }
+    .sr2-cat-empty {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 40px;
+      color: var(--text-3);
+      font-size: 14px;
+    }
+    .sr2-cat-empty i { font-size: 36px; margin-bottom: 10px; opacity: 0.4; display:block; }
+
+
+
+    /* ═══════════════════════════════════════════
        DETAIL GRID
     ═══════════════════════════════════════════ */
     .detail-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
@@ -705,6 +837,9 @@
     </div>
     <div class="sb-item" data-tab="full-info" onclick="switchTab('full-info',this)">
       <i class="fas fa-table-list"></i> Full Information
+    </div>
+    <div class="sb-item" data-tab="stock-register" onclick="switchTab('stock-register',this)">
+      <i class="fas fa-clipboard-list"></i> Stock Register
     </div>
   </nav>
 
@@ -1424,13 +1559,378 @@
 
   </div><!-- /full-info tab -->
 
+  <!-- ═══════════════════════════════════════════
+       TAB 6 — STOCK REGISTER
+  ═══════════════════════════════════════════ -->
+  
+  <div class="tab-content" id="stock-register">
+
+    <!-- ── LAYER 0: Department Cards ── -->
+    <div id="sr2-dept-layer">
+      <div style="margin-bottom:24px">
+        <div style="font-size:22px;font-weight:700;color:var(--text-1)"><i class="fas fa-warehouse" style="color:var(--blue);margin-right:8px"></i>Stock Register</div>
+        <div style="font-size:13px;color:var(--text-3);margin-top:3px">Select a department to view its inventory</div>
+      </div>
+      <div class="sr2-dept-cards">
+        <div class="sr2-dept-card sr2-dept-elcab" onclick="sr2_showCatLayer('ELCAB')">
+          <div class="sr2-dept-card-icon"><i class="fas fa-microchip"></i></div>
+          <div class="sr2-dept-card-name">EC LAB</div>
+          <div class="sr2-dept-card-sub">Electronics &amp; Cables</div>
+          <div class="sr2-dept-card-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+        <div class="sr2-dept-card sr2-dept-mech" onclick="sr2_showCatLayer('Mechanical')">
+          <div class="sr2-dept-card-icon"><i class="fas fa-cogs"></i></div>
+          <div class="sr2-dept-card-name">MECHANICAL</div>
+          <div class="sr2-dept-card-sub">Mechanical Components</div>
+          <div class="sr2-dept-card-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+        <div class="sr2-dept-card sr2-dept-elec" onclick="sr2_showCatLayer('Electrical')">
+          <div class="sr2-dept-card-icon"><i class="fas fa-bolt"></i></div>
+          <div class="sr2-dept-card-name">ELECTRICAL</div>
+          <div class="sr2-dept-card-sub">Electrical Systems</div>
+          <div class="sr2-dept-card-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LAYER 1: Category Cards ── -->
+    <div id="sr2-cat-layer" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="sr2_showDeptLayer()"><i class="fas fa-arrow-left"></i> Back</button>
+        <div>
+          <div style="font-size:20px;font-weight:700;color:var(--text-1)" id="sr2-cat-layer-title">Categories</div>
+          <div style="font-size:12px;color:var(--text-3)" id="sr2-cat-layer-sub">Select a category to view items</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="sr2_showManageCat()"><i class="fas fa-plus"></i> Manage Categories</button>
+          <button class="btn btn-secondary btn-sm" onclick="sr2_showDashboard()"><i class="fas fa-chart-pie"></i> Dashboard</button>
+          <button class="btn btn-secondary btn-sm" onclick="sr2_showInward()"><i class="fas fa-arrow-down"></i> Inward</button>
+          <button class="btn btn-secondary btn-sm" onclick="sr2_showOutward()"><i class="fas fa-arrow-up"></i> Outward</button>
+          <button class="btn btn-secondary btn-sm" onclick="sr2_showAllItems()"><i class="fas fa-box"></i> All Items</button>
+          <button class="btn btn-secondary btn-sm" onclick="sr2_showReports()"><i class="fas fa-file-excel"></i> Reports</button>
+        </div>
+      </div>
+      <div id="sr2-cat-cards-grid" class="sr2-cat-cards"></div>
+    </div>
+
+    <!-- ── LAYER 2: Items under Category ── -->
+    <div id="sr2-items-layer" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="sr2_showCatLayer(currentInventoryDepartment)"><i class="fas fa-arrow-left"></i> Back</button>
+        <div>
+          <div style="font-size:20px;font-weight:700;color:var(--text-1)" id="sr2-items-layer-title">Items</div>
+          <div style="font-size:12px;color:var(--text-3)" id="sr2-items-layer-sub"></div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="sr2_openItemModal()"><i class="fas fa-plus"></i> Add Item</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrap">
+            <table id="sr2-cat-items-table">
+              <thead><tr><th>Code</th><th>Name</th><th>Avail Qty</th><th>Min/Max</th><th>Rack/Bin</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="sr2-cat-items-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LAYER 3: Manage sub-sections (hidden, shown by overlay) ── -->
+    <div id="sr2-manage-layer" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <button class="btn btn-secondary btn-sm" onclick="sr2_showCatLayer(currentInventoryDepartment)"><i class="fas fa-arrow-left"></i> Back</button>
+        <div style="font-size:20px;font-weight:700;color:var(--text-1)" id="sr2-manage-layer-title">Manage</div>
+      </div>
+      <div class="inner-tabs" style="margin-bottom:22px" id="sr2-nav-tabs">
+        <div class="inner-tab active" onclick="sr2_switchTab('dashboard',this)"><i class="fas fa-chart-pie"></i> Dashboard</div>
+        <div class="inner-tab" onclick="sr2_switchTab('categories',this)"><i class="fas fa-tags"></i> Categories</div>
+        <div class="inner-tab" onclick="sr2_switchTab('items',this)"><i class="fas fa-boxes"></i> All Items</div>
+        <div class="inner-tab" onclick="sr2_switchTab('inward',this)"><i class="fas fa-arrow-down"></i> Inward</div>
+        <div class="inner-tab" onclick="sr2_switchTab('outward',this)"><i class="fas fa-arrow-up"></i> Outward</div>
+        <div class="inner-tab" onclick="sr2_switchTab('reports',this)"><i class="fas fa-file-excel"></i> Reports</div>
+      </div>
+
+      <!-- Dashboard -->
+      <div id="sr2-dashboard" class="sr2-tab-content" style="display:block">
+        <div class="stats-grid" id="sr2-stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px"></div>
+        <div class="form-grid fg-2">
+           <div class="card"><div class="card-header"><div class="card-title">Category Stock</div></div><div class="card-body"><div class="table-wrap"><table id="sr2-catstock-table"><thead><tr><th>Category</th><th>Total Qty</th></tr></thead><tbody></tbody></table></div></div></div>
+           <div class="card"><div class="card-header"><div class="card-title">Department Value</div></div><div class="card-body"><div class="table-wrap"><table id="sr2-deptval-table"><thead><tr><th>Dept</th><th>Total Value</th></tr></thead><tbody></tbody></table></div></div></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar"></i> Monthly Movement</div></div>
+          <div class="card-body"><canvas id="sr2-movement-chart" height="180"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div id="sr2-categories" class="sr2-tab-content" style="display:none">
+       <div class="card">
+          <div class="card-header">
+             <div class="card-title">Manage Categories</div>
+          </div>
+          <div class="card-body">
+             <form id="sr2-cat-form" class="form-grid fg-3" onsubmit="sr2_addCategory(event)">
+                <div class="form-group"><label>Name</label><input type="text" id="sr2-cat-name" class="form-control" required></div>
+                <div class="form-group"><label>Department</label>
+                  <select id="sr2-cat-dept" class="form-control" required>
+                    <option value="ELCAB">ELCAB</option><option value="Mechanical">Mechanical</option><option value="Electrical">Electrical</option>
+                  </select>
+                </div>
+                <div class="form-group" style="display:flex;align-items:flex-end"><button class="btn btn-primary" type="submit">Add Category</button></div>
+             </form>
+             <div class="table-wrap" style="margin-top:20px">
+               <table id="sr2-cat-table"><thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Action</th></tr></thead><tbody></tbody></table>
+             </div>
+          </div>
+       </div>
+    </div>
+
+    <!-- Items -->
+    <div id="sr2-items" class="sr2-tab-content" style="display:none">
+       <div class="card">
+          <div class="card-header">
+            <div class="card-title">Items Inventory</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <input type="text" id="sr2-items-search" class="form-control" placeholder="Search..." oninput="sr2_loadItems()">
+              <select id="sr2-items-dept" class="form-control" onchange="sr2_loadItems()"><option value="">All Depts</option><option value="ELCAB">ELCAB</option><option value="Mechanical">Mechanical</option><option value="Electrical">Electrical</option></select>
+              <select id="sr2-items-stock" class="form-control" onchange="sr2_loadItems()"><option value="">All Stock</option><option value="low">Low Stock</option><option value="out">Out of Stock</option></select>
+              <button class="btn btn-primary btn-sm" onclick="sr2_openItemModal()"><i class="fas fa-plus"></i> Add Item</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+             <table id="sr2-items-table">
+               <thead><tr><th>Code</th><th>Name</th><th>Dept</th><th>Category</th><th>Avail Qty</th><th>Min/Max</th><th>Rack/Bin</th><th>Status</th><th>Actions</th></tr></thead>
+               <tbody></tbody>
+             </table>
+          </div>
+       </div>
+    </div>
+
+    <!-- Inward -->
+    <div id="sr2-inward" class="sr2-tab-content" style="display:none">
+       <div class="card">
+          <div class="card-header"><div class="card-title">Inward Register</div><button class="btn btn-primary btn-sm" onclick="sr2_openInwardModal()"><i class="fas fa-plus"></i> New Inward</button></div>
+          <div class="table-wrap">
+            <table id="sr2-inward-table"><thead><tr><th>Serial</th><th>Date</th><th>Item</th><th>Supplier</th><th>PO / GRN</th><th>Qty Received</th><th>Unit Price</th><th>Value</th><th>Remarks</th></tr></thead><tbody></tbody></table>
+          </div>
+       </div>
+    </div>
+
+    <!-- Outward -->
+    <div id="sr2-outward" class="sr2-tab-content" style="display:none">
+       <div class="card">
+          <div class="card-header"><div class="card-title">Outward Register</div><button class="btn btn-primary btn-sm" onclick="sr2_openOutwardModal()"><i class="fas fa-plus"></i> New Outward</button></div>
+          <div class="table-wrap">
+            <table id="sr2-outward-table"><thead><tr><th>Serial</th><th>Date</th><th>Item</th><th>Issued To</th><th>Dept</th><th>Open Bal</th><th>Issued Qty</th><th>Close Bal</th><th>Purpose</th><th>Remarks</th></tr></thead><tbody></tbody></table>
+          </div>
+       </div>
+    </div>
+
+    <!-- Reports -->
+    <div id="sr2-reports" class="sr2-tab-content" style="display:none">
+       <div class="card">
+          <div class="card-header"><div class="card-title">Inventory Reports</div><button class="btn btn-success btn-sm" onclick="sr2_exportReport()"><i class="fas fa-download"></i> Export CSV</button></div>
+          <div class="card-body">
+            <div class="form-grid fg-4">
+              <div class="form-group"><label>Report Type</label>
+                <select id="sr2-rep-type" class="form-control">
+                  <option value="daily_inward">Daily Inward</option><option value="daily_outward">Daily Outward</option><option value="dead_stock">Dead Stock</option><option value="low_stock">Low Stock</option><option value="stock_valuation">Stock Valuation</option><option value="item_ledger">Item Ledger</option>
+                </select>
+              </div>
+              <div class="form-group"><label>From Date</label><input type="date" id="sr2-rep-from" class="form-control"></div>
+              <div class="form-group"><label>To Date</label><input type="date" id="sr2-rep-to" class="form-control"></div>
+              <div class="form-group"><label>Item ID (for Ledger)</label><input type="number" id="sr2-rep-item" class="form-control" placeholder="Item ID"></div>
+              <div class="form-group"><button class="btn btn-primary" onclick="sr2_generateReport()" style="margin-top:24px"><i class="fas fa-sync"></i> Generate</button></div>
+            </div>
+          </div>
+          <div class="table-wrap" style="margin-top:20px;">
+             <table id="sr2-rep-table"><thead><tr><th>Result</th></tr></thead><tbody><tr><td>Select report and generate.</td></tr></tbody></table>
+          </div>
+       </div>
+    </div>
+
+    </div><!-- /sr2-manage-layer -->
+
+  </div><!-- /stock-register tab -->
+
+
   </div><!-- /page-body -->
 </div><!-- /main-content -->
 </div><!-- /app -->
 
 <!-- ═══════════════════════════════════════════
+     EDIT STOCK REGISTER MODAL
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="sr-edit-modal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-hd">
+      <div><div class="modal-title"><i class="fas fa-edit" style="color:var(--blue);margin-right:6px"></i>Edit Stock Register Entry</div>
+        <div class="modal-sub" id="sr-edit-sub">Sl.No: —</div></div>
+      <button class="modal-close" onclick="sr_closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sr-edit-id">
+      <div class="form-grid fg-3" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>Department <span class="req">*</span></label>
+          <select id="sr-e-department" class="form-control" required>
+            <option value="EC LAB">EC LAB</option>
+            <option value="MECHANICAL">MECHANICAL</option>
+            <option value="ELECTRICAL">ELECTRICAL</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>DC Number</label>
+          <input type="text" id="sr-e-dc" class="form-control" placeholder="e.g. DC-2024-001">
+        </div>
+        <div class="form-group">
+          <label>Date <span class="req">*</span></label>
+          <input type="date" id="sr-e-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Item Name <span class="req">*</span></label>
+          <input type="text" id="sr-e-item" class="form-control" required>
+        </div>
+        <div class="form-group" style="grid-column: span 2">
+          <label>Description</label>
+          <input type="text" id="sr-e-desc" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Project Name</label>
+          <input type="text" id="sr-e-project" class="form-control">
+        </div>
+        <div class="form-group" style="grid-column: span 2">
+          <label>Issued To</label>
+          <input type="text" id="sr-e-issued-to" class="form-control">
+        </div>
+      </div>
+      <div class="form-grid fg-3" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>Opening Qty <span class="req">*</span></label>
+          <input type="number" id="sr-e-opening" class="form-control" min="0" oninput="sr_editCalcClosing()">
+        </div>
+        <div class="form-group">
+          <label>Issues (Out)</label>
+          <input type="number" id="sr-e-issues" class="form-control" min="0" oninput="sr_editCalcClosing()">
+        </div>
+        <div class="form-group">
+          <label>Returned</label>
+          <input type="number" id="sr-e-returned" class="form-control" min="0" oninput="sr_editCalcClosing()">
+        </div>
+        <div class="form-group">
+          <label>Closing Qty <span style="font-size:10px;color:var(--text-3);font-weight:400">(auto)</span></label>
+          <input type="number" id="sr-e-closing" class="form-control" readonly style="background:#f8fafc;font-weight:600;color:var(--blue)">
+        </div>
+        <div class="form-group" style="grid-column:span 2">
+          <label>Remarks</label>
+          <input type="text" id="sr-e-remarks" class="form-control">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-secondary" onclick="sr_closeEditModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button class="btn btn-primary" onclick="sr_submitEdit()"><i class="fas fa-save"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     RETURN STOCK REGISTER MODAL
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="sr-return-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-hd">
+      <div><div class="modal-title"><i class="fas fa-undo" style="color:var(--purple);margin-right:6px"></i>Record Return</div>
+        <div class="modal-sub" id="sr-return-sub">Item: —</div></div>
+      <button class="modal-close" onclick="sr_closeReturnModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sr-return-id">
+      <div style="background:var(--blue-lt);border:1px solid #bfdbfe;border-radius:var(--radius);padding:12px 14px;margin-bottom:18px;font-size:13px;color:var(--blue)">
+        <i class="fas fa-info-circle"></i> Entering a return quantity will <strong>increase the closing qty</strong> automatically.
+      </div>
+      <div class="form-grid fg-2">
+        <div class="form-group">
+          <label>Current Closing Qty</label>
+          <input type="number" id="sr-return-current-closing" class="form-control" readonly style="background:#f8fafc;font-weight:600;">
+        </div>
+        <div class="form-group">
+          <label>Return Qty <span class="req">*</span></label>
+          <input type="number" id="sr-return-qty" class="form-control" min="1" placeholder="Enter qty to return" oninput="sr_returnCalcNew()">
+        </div>
+        <div class="form-group">
+          <label>New Closing Qty <span style="font-size:10px;color:var(--text-3)">(after return)</span></label>
+          <input type="number" id="sr-return-new-closing" class="form-control" readonly style="background:var(--green-lt);font-weight:700;color:var(--green);">
+        </div>
+        <div class="form-group">
+          <label>Remarks</label>
+          <input type="text" id="sr-return-remarks" class="form-control" placeholder="Optional note">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-secondary" onclick="sr_closeReturnModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,var(--purple),#6d28d9)" onclick="sr_submitReturn()"><i class="fas fa-undo"></i> Record Return</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
      EDIT MATERIAL MODAL
 ═══════════════════════════════════════════ -->
+  <!-- ADD ITEM / ITEM LIST MODALS -->
+  <div class="modal-overlay" id="items-add-modal">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-hd">
+        <div><div class="modal-title"><i class="fas fa-plus-circle" style="color:var(--blue);margin-right:6px"></i>Add Item</div>
+          <div class="modal-sub">Create new item for item list</div></div>
+        <button class="modal-close" onclick="items_closeAddModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="items-add-alert"></div>
+        <div class="form-grid fg-2">
+          <div class="form-group">
+            <label>Item Name <span class="req">*</span></label>
+            <input type="text" id="it-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Opening Qty</label>
+            <input type="number" id="it-opening" class="form-control" min="0" step="0.001" value="0">
+          </div>
+          <div class="form-group">
+            <label>Closing Qty</label>
+            <input type="number" id="it-closing" class="form-control" min="0" step="0.001" value="0">
+          </div>
+        </div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn btn-secondary" onclick="items_closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="items_add()"><i class="fas fa-save"></i> Add Item</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="items-list-modal">
+    <div class="modal" style="max-width:760px">
+      <div class="modal-hd">
+        <div><div class="modal-title"><i class="fas fa-list" style="color:var(--blue);margin-right:6px"></i>Item List</div>
+          <div class="modal-sub">All items and their opening/closing quantities</div></div>
+        <button class="modal-close" onclick="items_closeListModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <input type="text" id="items-list-search" class="form-control" placeholder="Search items…" oninput="items_renderList()">
+        </div>
+        <div id="items-list-content"><p style="padding:12px;color:var(--text-3)">Loading…</p></div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn btn-secondary" onclick="items_closeListModal()">Close</button>
+      </div>
+    </div>
+  </div>
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <div class="modal-hd">
@@ -1545,8 +2045,120 @@
 <!-- ═══════════════════════════════════════════════════════
      JAVASCRIPT
 ═══════════════════════════════════════════════════════ -->
+
+<!-- SR2 MODALS -->
+<div class="modal-overlay" id="sr2-item-modal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hd">
+      <div class="modal-title" id="sr2-item-modal-title">Add Item</div>
+      <button class="modal-close" onclick="sr2_closeModal('sr2-item-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="sr2-item-form" onsubmit="sr2_submitItem(event)">
+        <input type="hidden" id="sr2-i-id">
+        <div class="form-grid fg-2">
+          <div class="form-group"><label>Item Code *</label><input type="text" id="sr2-i-code" class="form-control" required></div>
+          <div class="form-group"><label>Name *</label><input type="text" id="sr2-i-name" class="form-control" required></div>
+          <div class="form-group"><label>Department</label>
+            <select id="sr2-i-dept" class="form-control">
+              <option value="ELCAB">ELCAB</option><option value="Mechanical">Mechanical</option><option value="Electrical">Electrical</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Category</label><select id="sr2-i-cat" class="form-control"></select></div>
+          <div class="form-group"><label>Min Stock</label><input type="number" id="sr2-i-min" class="form-control" value="0"></div>
+          <div class="form-group"><label>Max Stock</label><input type="number" id="sr2-i-max" class="form-control" value="0"></div>
+          <div class="form-group"><label>Rack Number</label><input type="text" id="sr2-i-rack" class="form-control"></div>
+          <div class="form-group"><label>Bin Number</label><input type="text" id="sr2-i-bin" class="form-control"></div>
+        <
+        
+        
+        
+        
+        /div>
+        <div class="modal-ft" style="margin-top:20px;padding:0;border-top:none;padding-top:10px">
+          <button class="btn btn-primary" type="submit">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sr2-inward-modal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hd">
+      <div class="modal-title">New Inward Entry</div>
+      <button class="modal-close" onclick="sr2_closeModal('sr2-inward-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="sr2-inward-form" onsubmit="sr2_submitInward(event)">
+        <div class="form-grid fg-2">
+          <div class="form-group"><label>Date *</label><input type="date" id="sr2-inw-date" class="form-control" required></div>
+          <div class="form-group"><label>Item *</label><select id="sr2-inw-item" class="form-control" required><option value="">Select Item</option></select></div>
+          <div class="form-group"><label>Quantity Received *</label><input type="number" id="sr2-inw-qty" class="form-control" min="0.01" step="0.01" required></div>
+          <div class="form-group"><label>Unit Price</label><input type="number" id="sr2-inw-price" class="form-control" min="0" step="0.01"></div>
+          <div class="form-group"><label>Supplier *</label><input type="text" id="sr2-inw-supplier" class="form-control" required></div>
+          <div class="form-group"><label>PO Number</label><input type="text" id="sr2-inw-po" class="form-control"></div>
+          <div class="form-group"><label>GRN / Invoice</label><input type="text" id="sr2-inw-grn" class="form-control"></div>
+          <div class="form-group"><label>Remarks</label><input type="text" id="sr2-inw-remarks" class="form-control"></div>
+        </div>
+        <div class="modal-ft" style="margin-top:20px;padding:0;border:top:none;padding-top:10px">
+          <button class="btn btn-primary" type="submit">Save Inward</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sr2-outward-modal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hd">
+      <div class="modal-title">New Outward Entry</div>
+      <button class="modal-close" onclick="sr2_closeModal('sr2-outward-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="sr2-outward-form" onsubmit="sr2_submitOutward(event)">
+        <div class="form-grid fg-2">
+          <div class="form-group"><label>Date *</label><input type="date" id="sr2-out-date" class="form-control" required></div>
+          <div class="form-group"><label>Item *</label><select id="sr2-out-item" class="form-control" required><option value="">Select Item</option></select></div>
+          <div class="form-group"><label>Quantity Issued *</label><input type="number" id="sr2-out-qty" class="form-control" min="0.01" step="0.01" required></div>
+          <div class="form-group"><label>Issued To *</label><input type="text" id="sr2-out-to" class="form-control" required></div>
+          <div class="form-group"><label>Department</label><input type="text" id="sr2-out-dept" class="form-control"></div>
+          <div class="form-group"><label>Purpose</label><input type="text" id="sr2-out-purpose" class="form-control"></div>
+        </div>
+        <div class="modal-ft" style="margin-top:20px;padding:0;border:top:none;padding-top:10px">
+          <button class="btn btn-primary" type="submit">Save Outward</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sr2-item-detail-modal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-hd">
+      <div class="modal-title">Item Detail</div>
+      <button class="modal-close" onclick="sr2_closeModal('sr2-item-detail-modal')">&times;</button>
+    </div>
+    <div class="modal-body" id="sr2-item-detail-body"></div>
+    <div class="modal-ft" style="margin-top:20px;padding:0;border-top:none;padding-top:10px">
+      <button class="btn btn-secondary" onclick="sr2_closeModal('sr2-item-detail-modal')">Close</button>
+      <button class="btn btn-primary" onclick="sr2_openInwardModal(sr2DetailItemId); sr2_closeModal('sr2-item-detail-modal')">Record Inward</button>
+      <button class="btn btn-danger" onclick="sr2_openOutwardModal(sr2DetailItemId); sr2_closeModal('sr2-item-detail-modal')">Record Outward</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 'use strict';
+
+function normalizeDeptValue(value) {
+  const input = String(value || '').trim().toLowerCase();
+  if (!input) return 'ELCAB';
+  if (['elcab','ec lab','ec-lab','ec_lab'].includes(input)) return 'ELCAB';
+  if (['mechanical','mech'].includes(input)) return 'Mechanical';
+  if (['electrical','elec'].includes(input)) return 'Electrical';
+  return value || 'ELCAB';
+}
 
 // ──────────────────────────────────────────────────────
 //  CONSTANTS & STATE
@@ -1567,6 +2179,7 @@ const TAB_META = {
   'delivery-challan': { title:'Delivery Challan',  sub:'View challans and return deadlines' },
   'materials':        { title:'Materials Entry',   sub:'Add and manage inventory materials' },
   'full-info':        { title:'Full Information',  sub:'Comprehensive view of all inventory data' },
+  'stock-register':   { title:'Stock Register',    sub:'Track stock issues, returns and closing balance' },
 };
 
 // ──────────────────────────────────────────────────────
@@ -1637,11 +2250,12 @@ function switchTab(name, el) {
   if (name === 'delivery-challan') loadChallans();
   if (name === 'materials')        { refreshMatStats(); buildMatCatFilter(); filterMaterials(); populateStockSel(); renderStockLog(); }
   if (name === 'full-info')        initFullInfo();
+  if (name === 'stock-register')   { sr2_selectDepartment(currentInventoryDepartment || 'ELCAB'); }
 }
 
 function switchInner(id, el) {
-  document.querySelectorAll('.inner-tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#materials .inner-tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#materials .inner-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   el.classList.add('active');
   if (id === 'mat-list')  { buildMatCatFilter(); filterMaterials(); }
@@ -2625,7 +3239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setupDragScroll('dc-table-wrap');
 
-  ['edit-modal','del-modal','detail-modal','dc-items-modal'].forEach(id=>{
+  ['edit-modal','del-modal','detail-modal','dc-items-modal','sr-edit-modal','sr-return-modal'].forEach(id=>{
     document.getElementById(id)?.addEventListener('click', function(e){
       if(e.target===this) this.classList.remove('open');
     });
@@ -2633,7 +3247,1068 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   refreshMatStats();
   buildMatCatFilter();
+
+  // Init Stock Register
+  if (document.getElementById('sr-tbody')) {
+    sr_loadEntries();
+  }
+  items_load();
+  if (document.getElementById('sr-date')) {
+    document.getElementById('sr-date').value = new Date().toISOString().split('T')[0];
+  }
+  if (typeof sr2_selectDepartment === 'function') {
+    sr2_selectDepartment('ELCAB');
+  }
 });
+
+// ══════════════════════════════════════════════════════════
+//  STOCK REGISTER MODULE
+// ══════════════════════════════════════════════════════════
+
+let srEntries   = [];   // raw data from server
+let srFiltered  = [];   // after search/filter
+let srPage      = 1;
+const SR_PER_PAGE = 20;
+let currentSrDept = 'EC LAB';
+
+// ── Department Tabs switching ──────────────────────────────
+function sr_switchDept(dept) {
+  currentSrDept = dept;
+  document.querySelectorAll('#stock-register .inner-tabs .inner-tab').forEach(t => {
+    t.classList.remove('active');
+  });
+  if (dept === 'EC LAB') document.getElementById('sr-tab-ec').classList.add('active');
+  else if (dept === 'MECHANICAL') document.getElementById('sr-tab-mech').classList.add('active');
+  else if (dept === 'ELECTRICAL') document.getElementById('sr-tab-elec').classList.add('active');
+
+  const deptSelect = document.getElementById('sr-department');
+  if (deptSelect) {
+    deptSelect.value = dept;
+  }
+
+  sr_filterTable();
+  sr_updateStats();
+}
+
+// ── Closing Qty auto-calc ──────────────────────────────────
+function sr_calcClosing() {
+  const open    = parseFloat(document.getElementById('sr-opening-qty').value) || 0;
+  const issues  = parseFloat(document.getElementById('sr-issues').value)      || 0;
+  const ret     = parseFloat(document.getElementById('sr-returned').value)    || 0;
+  document.getElementById('sr-closing-qty').value = Math.max(0, open - issues + ret);
+}
+
+function sr_editCalcClosing() {
+  const open   = parseFloat(document.getElementById('sr-e-opening').value)  || 0;
+  const issues = parseFloat(document.getElementById('sr-e-issues').value)   || 0;
+  const ret    = parseFloat(document.getElementById('sr-e-returned').value) || 0;
+  document.getElementById('sr-e-closing').value = Math.max(0, open - issues + ret);
+}
+
+// ── Toggle form visibility ─────────────────────────────────
+function sr_toggleForm() {
+  const body = document.getElementById('sr-form-body');
+  const chevron = document.getElementById('sr-form-chevron');
+  if (body.style.display === 'none') {
+    body.style.display = '';
+    chevron.className = 'fas fa-chevron-up';
+  } else {
+    body.style.display = 'none';
+    chevron.className = 'fas fa-chevron-down';
+  }
+}
+
+// ── Clear form ─────────────────────────────────────────────
+function sr_clearForm() {
+  ['sr-dc-number','sr-item-name','sr-description','sr-project-name',
+   'sr-issued-to','sr-opening-qty','sr-remarks'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('sr-issues').value   = '0';
+  document.getElementById('sr-returned').value = '0';
+  document.getElementById('sr-closing-qty').value = '';
+  document.getElementById('sr-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sr-department').value = currentSrDept;
+}
+
+// ── Load entries from API ──────────────────────────────────
+async function sr_loadEntries() {
+  try {
+    const res  = await fetch('/api/stock-register');
+    const data = await res.json();
+    srEntries  = Array.isArray(data) ? data : [];
+    sr_filterTable();
+    sr_updateStats();
+  } catch(e) {
+    console.error('SR load error:', e);
+    srEntries = [];
+    sr_renderTable([]);
+  }
+}
+
+// ── Save new entry ─────────────────────────────────────────
+async function sr_saveEntry() {
+  const itemName = document.getElementById('sr-item-name').value.trim();
+  const date     = document.getElementById('sr-date').value;
+  const opening  = document.getElementById('sr-opening-qty').value;
+
+  if (!itemName) { toast('error','Validation','Item Name is required.'); return; }
+  if (!date)     { toast('error','Validation','Date is required.');      return; }
+  if (opening === '') { toast('error','Validation','Opening Qty is required.'); return; }
+
+  const payload = {
+    dc_number:    document.getElementById('sr-dc-number').value.trim(),
+    date,
+    item_name:    itemName,
+    description:  document.getElementById('sr-description').value.trim(),
+    project_name: document.getElementById('sr-project-name').value.trim(),
+    issued_to:    document.getElementById('sr-issued-to').value.trim(),
+    opening_qty:  parseFloat(opening) || 0,
+    issues:       parseFloat(document.getElementById('sr-issues').value)   || 0,
+    returned:     parseFloat(document.getElementById('sr-returned').value) || 0,
+    closing_qty:  parseFloat(document.getElementById('sr-closing-qty').value) || 0,
+    remarks:      document.getElementById('sr-remarks').value.trim(),
+    department:   document.getElementById('sr-department').value,
+  };
+
+  try {
+    const res  = await fetch('/api/stock-register', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('success','Saved','Stock register entry saved.');
+      sr_clearForm();
+      await sr_loadEntries();
+      await items_load();
+    } else {
+      toast('error','Error', data.error || 'Failed to save.');
+    }
+  } catch(e) {
+    toast('error','Error','Network error while saving.');
+  }
+}
+
+// ── Open Edit modal ────────────────────────────────────────
+function sr_openEditModal(id) {
+  const entry = srEntries.find(e => e.id == id);
+  if (!entry) return;
+
+  document.getElementById('sr-edit-id').value    = entry.id;
+  document.getElementById('sr-edit-sub').textContent = `Sl.No: ${entry.sl_no || entry.id}`;
+  document.getElementById('sr-e-dc').value       = entry.dc_number   || '';
+  document.getElementById('sr-e-date').value     = entry.date ? entry.date.substring(0,10) : '';
+  document.getElementById('sr-e-item').value     = entry.item_name   || '';
+  document.getElementById('sr-e-desc').value     = entry.description || '';
+  document.getElementById('sr-e-project').value  = entry.project_name|| '';
+  document.getElementById('sr-e-issued-to').value= entry.issued_to   || '';
+  document.getElementById('sr-e-opening').value  = entry.opening_qty ?? 0;
+  document.getElementById('sr-e-issues').value   = entry.issues      ?? 0;
+  document.getElementById('sr-e-returned').value = entry.returned    ?? 0;
+  document.getElementById('sr-e-closing').value  = entry.closing_qty ?? 0;
+  document.getElementById('sr-e-remarks').value  = entry.remarks     || '';
+  document.getElementById('sr-e-department').value = entry.department || 'EC LAB';
+
+  document.getElementById('sr-edit-modal').classList.add('open');
+}
+
+function sr_closeEditModal() {
+  document.getElementById('sr-edit-modal').classList.remove('open');
+}
+
+// ── Submit Edit ────────────────────────────────────────────
+async function sr_submitEdit() {
+  const id       = document.getElementById('sr-edit-id').value;
+  const itemName = document.getElementById('sr-e-item').value.trim();
+  const date     = document.getElementById('sr-e-date').value;
+  if (!itemName || !date) { toast('error','Validation','Item Name & Date required.'); return; }
+
+  const payload = {
+    dc_number:    document.getElementById('sr-e-dc').value.trim(),
+    date,
+    item_name:    itemName,
+    description:  document.getElementById('sr-e-desc').value.trim(),
+    project_name: document.getElementById('sr-e-project').value.trim(),
+    issued_to:    document.getElementById('sr-e-issued-to').value.trim(),
+    opening_qty:  parseFloat(document.getElementById('sr-e-opening').value)  || 0,
+    issues:       parseFloat(document.getElementById('sr-e-issues').value)   || 0,
+    returned:     parseFloat(document.getElementById('sr-e-returned').value) || 0,
+    closing_qty:  parseFloat(document.getElementById('sr-e-closing').value)  || 0,
+    remarks:      document.getElementById('sr-e-remarks').value.trim(),
+    department:   document.getElementById('sr-e-department').value,
+  };
+
+  try {
+    const res  = await fetch(`/api/stock-register/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('success','Updated','Entry updated successfully.');
+      sr_closeEditModal();
+      await sr_loadEntries();
+      await items_load();
+    } else {
+      toast('error','Error', data.error || 'Failed to update.');
+    }
+  } catch(e) {
+    toast('error','Error','Network error while updating.');
+  }
+}
+
+// ── Open Return modal ──────────────────────────────────────
+function sr_openReturnModal(id) {
+  const entry = srEntries.find(e => e.id == id);
+  if (!entry) return;
+
+  document.getElementById('sr-return-id').value = entry.id;
+  document.getElementById('sr-return-sub').textContent = `Item: ${entry.item_name}`;
+  document.getElementById('sr-return-current-closing').value = entry.closing_qty ?? 0;
+  document.getElementById('sr-return-qty').value     = '';
+  document.getElementById('sr-return-new-closing').value = entry.closing_qty ?? 0;
+  document.getElementById('sr-return-remarks').value = '';
+
+  document.getElementById('sr-return-modal').classList.add('open');
+}
+
+function sr_closeReturnModal() {
+  document.getElementById('sr-return-modal').classList.remove('open');
+}
+
+// ── Submit Return ──────────────────────────────────────────
+async function sr_submitReturn() {
+  const id      = document.getElementById('sr-return-id').value;
+  const retQty  = parseFloat(document.getElementById('sr-return-qty').value);
+  const remarks = document.getElementById('sr-return-remarks').value.trim();
+
+  if (!retQty || retQty <= 0) { toast('error','Validation','Enter a valid return quantity.'); return; }
+
+  try {
+    const res  = await fetch(`/api/stock-register/${id}/return`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ return_qty: retQty, remarks })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('success','Returned',`Closing qty updated to ${data.new_closing_qty}.`);
+      sr_closeReturnModal();
+      await sr_loadEntries();
+      await items_load();
+    } else {
+      toast('error','Error', data.error || 'Failed to record return.');
+    }
+  } catch(e) {
+    toast('error','Error','Network error while recording return.');
+  }
+}
+
+// ── Filter / search ────────────────────────────────────────
+function sr_filterTable() {
+  const q    = (document.getElementById('sr-search').value || '').toLowerCase();
+  const fDate= document.getElementById('sr-filter-date').value;
+
+  srFiltered = srEntries.filter(e => {
+    const matchDept = (e.department || 'EC LAB') === currentSrDept;
+
+    const matchQ = !q ||
+      (e.dc_number   || '').toLowerCase().includes(q) ||
+      (e.item_name   || '').toLowerCase().includes(q) ||
+      (e.description || '').toLowerCase().includes(q) ||
+      (e.project_name|| '').toLowerCase().includes(q) ||
+      (e.issued_to   || '').toLowerCase().includes(q) ||
+      (e.remarks     || '').toLowerCase().includes(q);
+
+    const matchD = !fDate || (e.date && e.date.substring(0,10) === fDate);
+    return matchDept && matchQ && matchD;
+  });
+
+  srPage = 1;
+  sr_renderTable(srFiltered);
+}
+
+// ── Render table rows ──────────────────────────────────────
+function sr_renderTable(data) {
+  const tbody = document.getElementById('sr-tbody');
+  const badge = document.getElementById('sr-table-badge');
+  if (!tbody) return;
+  if (badge) badge.textContent = data.length;
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="13"><div class="empty-state" style="padding:30px">
+      <i class="fas fa-clipboard-list"></i><h3>No entries found</h3><p>Try adjusting your search or add a new entry.</p>
+    </div></td></tr>`;
+    document.getElementById('sr-pag').style.display = 'none';
+    return;
+  }
+
+  const total = data.length;
+  const pages = Math.ceil(total / SR_PER_PAGE);
+  if (srPage > pages) srPage = pages;
+
+  const start = (srPage - 1) * SR_PER_PAGE;
+  const slice = data.slice(start, start + SR_PER_PAGE);
+
+  tbody.innerHTML = slice.map((e, i) => {
+    const rowNum = start + i + 1;
+    const dateStr = e.date ? new Date(e.date).toLocaleDateString('en-IN') : '—';
+    const closingClass = (e.closing_qty > 0) ? 'color:var(--green);font-weight:700' : 'color:var(--red);font-weight:700';
+    return `<tr>
+      <td class="td-mono">${rowNum}</td>
+      <td>${e.dc_number || '—'}</td>
+      <td>${dateStr}</td>
+      <td style="font-weight:500">${e.item_name || '—'}</td>
+      <td class="td-muted">${e.description || '—'}</td>
+      <td>${e.project_name || '—'}</td>
+      <td style="text-align:right">${e.opening_qty ?? 0}</td>
+      <td style="text-align:right;color:var(--red)">${e.issues ?? 0}</td>
+      <td style="text-align:right;color:var(--purple)">${e.returned ?? 0}</td>
+      <td style="text-align:right;${closingClass}">${e.closing_qty ?? 0}</td>
+      <td>${e.issued_to || '—'}</td>
+      <td class="td-muted">${e.remarks || '—'}</td>
+      <td>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" onclick="sr_openReturnModal(${e.id})" title="Record Return">
+            <i class="fas fa-undo"></i> Return
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="sr_openEditModal(${e.id})" title="Edit">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Pagination
+  const pagEl      = document.getElementById('sr-pag');
+  const pagInfo    = document.getElementById('sr-pag-info');
+  const pagBtns    = document.getElementById('sr-pag-btns');
+
+  pagEl.style.display = pages > 1 ? '' : 'none';
+  pagInfo.textContent = `Showing ${start+1}–${Math.min(start+SR_PER_PAGE, total)} of ${total}`;
+
+  let btns = `<button class="pag-btn ${srPage===1?'disabled':''}" onclick="sr_goPage(${srPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+  for (let p = 1; p <= pages; p++) {
+    if (pages <= 7 || p===1 || p===pages || Math.abs(p-srPage)<=1) {
+      btns += `<button class="pag-btn ${p===srPage?'active':''}" onclick="sr_goPage(${p})">${p}</button>`;
+    } else if (Math.abs(p-srPage)===2) {
+      btns += `<button class="pag-btn disabled">…</button>`;
+    }
+  }
+  btns += `<button class="pag-btn ${srPage===pages?'disabled':''}" onclick="sr_goPage(${srPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+  pagBtns.innerHTML = btns;
+}
+
+function sr_goPage(p) {
+  const pages = Math.ceil(srFiltered.length / SR_PER_PAGE);
+  if (p < 1 || p > pages) return;
+  srPage = p;
+  sr_renderTable(srFiltered);
+}
+
+// ── Stats ──────────────────────────────────────────────────
+function sr_updateStats() {
+  const deptEntries = srEntries.filter(e => (e.department || 'EC LAB') === currentSrDept);
+  document.getElementById('sr-stat-total').textContent    = deptEntries.length;
+  document.getElementById('sr-stat-opening').textContent  = deptEntries.reduce((s,e)=>s+(parseFloat(e.opening_qty)||0),0);
+  document.getElementById('sr-stat-issued').textContent   = deptEntries.reduce((s,e)=>s+(parseFloat(e.issues)||0),0);
+  document.getElementById('sr-stat-returned').textContent = deptEntries.reduce((s,e)=>s+(parseFloat(e.returned)||0),0);
+}
+
+// ──────────────────────────────────────────────────────
+//  ITEM LIST (client-side helpers)
+// ──────────────────────────────────────────────────────
+let items = [];
+
+async function items_load() {
+  try {
+    const res = await fetch('/api/items');
+    if (!res.ok) throw new Error('Failed to load items');
+    items = await res.json();
+  } catch(err) {
+    console.error('items_load err', err);
+    items = [];
+  }
+}
+
+function items_openAddModal() {
+  document.getElementById('it-name').value = '';
+  document.getElementById('it-opening').value = '0';
+  document.getElementById('it-closing').value = '0';
+  document.getElementById('items-add-modal').classList.add('open');
+}
+function items_closeAddModal() { document.getElementById('items-add-modal').classList.remove('open'); }
+
+async function items_add() {
+  const name = document.getElementById('it-name').value.trim();
+  const opening = parseFloat(document.getElementById('it-opening').value) || 0;
+  const closing = parseFloat(document.getElementById('it-closing').value);
+  if (!name) { toast('error','Validation','Item name required'); return; }
+  try {
+    const res = await fetch('/api/items', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, opening_qty: opening, closing_qty: isNaN(closing)?opening:closing }) });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      toast('success','Added','Item added to list');
+      await items_load();
+      // if user currently entered this item in stock form, update opening/closing fields
+      const cur = (document.getElementById('sr-item-name')||{}).value || '';
+      if (cur.trim().toLowerCase() === name.toLowerCase()) {
+        document.getElementById('sr-opening-qty').value = opening;
+        document.getElementById('sr-closing-qty').value = isNaN(closing)?opening:closing;
+      }
+      items_closeAddModal();
+    } else {
+      toast('error','Failed', data.error || 'Could not add item');
+    }
+  } catch(err) { console.error(err); toast('error','Error','Network error while adding item'); }
+}
+
+function items_openListModal() {
+  items_renderList();
+  document.getElementById('items-list-modal').classList.add('open');
+}
+function items_closeListModal() { document.getElementById('items-list-modal').classList.remove('open'); }
+
+function items_renderList() {
+  const q = (document.getElementById('items-list-search').value || '').toLowerCase();
+  const list = items.filter(it => !q || (it.name||'').toLowerCase().includes(q));
+  if (!list.length) {
+    document.getElementById('items-list-content').innerHTML = '<p style="padding:12px;color:var(--text-3)">No items found.</p>';
+    return;
+  }
+  const rows = list.map(it => `<tr>
+      <td style="font-weight:600">${it.name}</td>
+      <td style="text-align:right">${it.opening_qty||0}</td>
+      <td style="text-align:right">${it.closing_qty||0}</td>
+      <td style="text-align:right"><button class="btn btn-sm btn-primary" onclick="items_use('${encodeURIComponent(it.name)}')">Use</button></td>
+    </tr>`).join('');
+  document.getElementById('items-list-content').innerHTML = `<table><thead><tr><th>Item</th><th>Opening Qty</th><th>Closing Qty</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function items_use(encodedName) {
+  const name = decodeURIComponent(encodedName);
+  const it = items.find(i => (i.name||'').toLowerCase() === name.toLowerCase());
+  if (!it) return;
+  document.getElementById('sr-item-name').value = it.name;
+  document.getElementById('sr-opening-qty').value = it.opening_qty || 0;
+  document.getElementById('sr-closing-qty').value = it.closing_qty || 0;
+  items_closeListModal();
+}
+
+function items_lookupByName() {
+  const name = (document.getElementById('sr-item-name').value || '').trim();
+  if (!name) return;
+  const it = items.find(i => (i.name||'').toLowerCase() === name.toLowerCase());
+  if (it) {
+    document.getElementById('sr-opening-qty').value = it.opening_qty || 0;
+    document.getElementById('sr-closing-qty').value = it.closing_qty || 0;
+  }
+}
+
+// attach lookup to input blur
+document.addEventListener('click', function(e){
+  // attach once after DOM ready — ensure element exists
+  const el = document.getElementById('sr-item-name');
+  if (el && !el._items_bound) {
+    el.addEventListener('blur', items_lookupByName);
+    el._items_bound = true;
+  }
+});
+
+// ── Download as CSV/Excel ──────────────────────────────────
+function sr_downloadExcel() {
+  const data = srFiltered.length ? srFiltered : srEntries.filter(e => (e.department || 'EC LAB') === currentSrDept);
+  if (!data.length) { toast('error','No Data','Nothing to download.'); return; }
+
+  const headers = ['Sl.No','Department','DC Number','Date','Item Name','Description','Project Name',
+                   'Opening Qty','Issues','Returned','Closing Qty','Issued To','Remarks'];
+  let csv = headers.join(',') + '\n';
+
+  data.forEach((e, i) => {
+    const row = [
+      i+1,
+      e.department   || 'EC LAB',
+      e.dc_number    || '',
+      e.date ? new Date(e.date).toLocaleDateString('en-IN') : '',
+      e.item_name    || '',
+      e.description  || '',
+      e.project_name || '',
+      e.opening_qty  ?? 0,
+      e.issues       ?? 0,
+      e.returned     ?? 0,
+      e.closing_qty  ?? 0,
+      e.issued_to    || '',
+      e.remarks      || ''
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`);
+    csv += row.join(',') + '\n';
+  });
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `stock-register-${currentSrDept.replace(/\s+/g, '_')}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  toast('success','Downloaded','Stock register exported as CSV.');
+}
+
+// ═══════════════════════════════════════════
+// SR2 JAVASCRIPT
+// ═══════════════════════════════════════════
+let currentInventoryDepartment = 'ELCAB';
+let sr2DetailItemId = null;
+let sr2MovementChart = null;
+let currentCategoryId = null;
+let currentCategoryName = '';
+
+// ── Layer navigation helpers ──
+function sr2_hideAllLayers() {
+  ['sr2-dept-layer','sr2-cat-layer','sr2-items-layer','sr2-manage-layer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+function sr2_showDeptLayer() {
+  sr2_hideAllLayers();
+  document.getElementById('sr2-dept-layer').style.display = '';
+}
+function sr2_showCatLayer(dept) {
+  currentInventoryDepartment = normalizeDeptValue(dept);
+  const catDept = document.getElementById('sr2-cat-dept');
+  if (catDept) catDept.value = currentInventoryDepartment;
+  const itemsDept = document.getElementById('sr2-items-dept');
+  if (itemsDept) itemsDept.value = currentInventoryDepartment;
+  sr2_hideAllLayers();
+  document.getElementById('sr2-cat-layer').style.display = '';
+  const deptLabels = { 'ELCAB': 'EC LAB', 'Mechanical': 'MECHANICAL', 'Electrical': 'ELECTRICAL' };
+  document.getElementById('sr2-cat-layer-title').textContent = deptLabels[currentInventoryDepartment] || currentInventoryDepartment;
+  document.getElementById('sr2-cat-layer-sub').textContent = 'Select a category to view its items';
+  sr2_loadCatCards();
+}
+function sr2_showItemsByCategory(catId, catName) {
+  currentCategoryId = catId;
+  currentCategoryName = catName;
+  sr2_hideAllLayers();
+  document.getElementById('sr2-items-layer').style.display = '';
+  document.getElementById('sr2-items-layer-title').textContent = catName;
+  const deptLabels = { 'ELCAB': 'EC LAB', 'Mechanical': 'MECHANICAL', 'Electrical': 'ELECTRICAL' };
+  document.getElementById('sr2-items-layer-sub').textContent = (deptLabels[currentInventoryDepartment] || currentInventoryDepartment) + ' › ' + catName;
+  sr2_loadCatItems(catId);
+}
+function sr2_showManageCat() {
+  sr2_hideAllLayers();
+  document.getElementById('sr2-manage-layer').style.display = '';
+  document.getElementById('sr2-manage-layer-title').textContent = 'Manage — ' + currentInventoryDepartment;
+  sr2_switchTab('categories', document.querySelector('#sr2-nav-tabs .inner-tab'));
+}
+function sr2_showInward() {
+  sr2_hideAllLayers();
+  document.getElementById('sr2-manage-layer').style.display = '';
+  document.getElementById('sr2-manage-layer-title').textContent = 'Inward Register — ' + currentInventoryDepartment;
+  sr2_switchTab('inward', null);
+}
+function sr2_showOutward() {
+  sr2_hideAllLayers();
+  document.getElementById('sr2-manage-layer').style.display = '';
+  document.getElementById('sr2-manage-layer-title').textContent = 'Outward Register — ' + currentInventoryDepartment;
+  sr2_switchTab('outward', null);
+}
+function sr2_showReports() {
+  sr2_hideAllLayers();
+  document.getElementById('sr2-manage-layer').style.display = '';
+  document.getElementById('sr2-manage-layer-title').textContent = 'Reports — ' + currentInventoryDepartment;
+  sr2_switchTab('reports', null);
+}
+function sr2_showDashboard() {
+  sr2_hideAllLayers();
+  document.getElementById('sr2-manage-layer').style.display = '';
+  document.getElementById('sr2-manage-layer-title').textContent = 'Dashboard — ' + currentInventoryDepartment;
+  sr2_switchTab('dashboard', document.querySelector('#sr2-nav-tabs .inner-tab'));
+}
+function sr2_showAllItems() {
+  sr2_hideAllLayers();
+  document.getElementById('sr2-manage-layer').style.display = '';
+  document.getElementById('sr2-manage-layer-title').textContent = 'All Items — ' + currentInventoryDepartment;
+  const itemsTab = document.querySelector('#sr2-nav-tabs .inner-tab:nth-child(3)');
+  sr2_switchTab('items', itemsTab);
+}
+
+// Legacy compat – called from switchTab and search
+function sr2_selectDepartment(dept, el) {
+  sr2_showDeptLayer();
+}
+
+function sr2_switchTab(tabId, el) {
+  document.querySelectorAll('#stock-register .sr2-tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('#sr2-nav-tabs .inner-tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('sr2-' + tabId);
+  if (panel) panel.style.display = 'block';
+  if (el) el.classList.add('active');
+  if (tabId === 'dashboard') sr2_loadDashboard();
+  if (tabId === 'categories') sr2_loadCategories();
+  if (tabId === 'items') sr2_loadItems();
+  if (tabId === 'inward') sr2_loadInward();
+  if (tabId === 'outward') sr2_loadOutward();
+}
+
+function sr2_closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Dashboard
+async function sr2_loadDashboard() {
+  try {
+    const res = await fetch('/api/inventory/dashboard?department=' + encodeURIComponent(currentInventoryDepartment));
+    const d = await res.json();
+    document.getElementById('sr2-stats-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-boxes"></i></div><div><div class="stat-value">${d.total_departments||0}</div><div class="stat-label">Departments</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-green"><i class="fas fa-tags"></i></div><div><div class="stat-value">${d.total_categories||0}</div><div class="stat-label">Categories</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-cubes"></i></div><div><div class="stat-value">${d.total_items||0}</div><div class="stat-label">Items</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-amber"><i class="fas fa-rupee-sign"></i></div><div><div class="stat-value">₹${(d.total_stock_value||0).toFixed(2)}</div><div class="stat-label">Stock Value</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-red"><i class="fas fa-exclamation-triangle"></i></div><div><div class="stat-value">${d.low_stock||0}</div><div class="stat-label">Low Stock</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-red"><i class="fas fa-ban"></i></div><div><div class="stat-value">${d.out_of_stock||0}</div><div class="stat-label">Out of Stock</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-green"><i class="fas fa-arrow-down"></i></div><div><div class="stat-value">${d.today_inward||0}</div><div class="stat-label">Today Inward</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-purple"><i class="fas fa-arrow-up"></i></div><div><div class="stat-value">${d.today_outward||0}</div><div class="stat-label">Today Outward</div></div></div>
+    `;
+
+    document.getElementById('sr2-catstock-table').querySelector('tbody').innerHTML = (d.category_stock||[]).map(r => `<tr><td>${r.category}</td><td>${r.total_qty}</td></tr>`).join('');
+    document.getElementById('sr2-deptval-table').querySelector('tbody').innerHTML = (d.department_stock_value||[]).map(r => `<tr><td>${r.department}</td><td>₹${parseFloat(r.total_value||0).toFixed(2)}</td></tr>`).join('');
+
+    const labels = (d.monthly_inward || []).map(r => r.month);
+    const inward = (d.monthly_inward || []).map(r => parseFloat(r.total || 0));
+    const outward = (d.monthly_outward || []).map(r => parseFloat(r.total || 0));
+    if (sr2MovementChart) sr2MovementChart.destroy();
+    const ctx = document.getElementById('sr2-movement-chart');
+    if (ctx && typeof Chart !== 'undefined') {
+      sr2MovementChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Inward', data: inward, backgroundColor: 'rgba(37, 99, 235, 0.7)' },
+            { label: 'Outward', data: outward, backgroundColor: 'rgba(220, 38, 38, 0.7)' }
+          ]
+        },
+        options: { responsive:true, plugins:{legend:{display:true}} }
+      });
+    }
+  } catch(e) { console.error(e); }
+}
+
+// Categories
+async function sr2_loadCategories() {
+  try {
+    const res = await fetch('/api/inventory/categories?department=' + encodeURIComponent(currentInventoryDepartment));
+    const d = await res.json();
+    document.getElementById('sr2-cat-table').querySelector('tbody').innerHTML = d.map(c => `<tr><td>${c.id}</td><td>${c.name}</td><td>${c.department}</td><td><button class="btn btn-sm btn-danger" onclick="sr2_delCategory(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+// Category Cards (drill-down layer 1)
+async function sr2_loadCatCards() {
+  const grid = document.getElementById('sr2-cat-cards-grid');
+  grid.innerHTML = '<div style="color:var(--text-3);padding:20px">Loading categories…</div>';
+  try {
+    const res = await fetch('/api/inventory/categories?department=' + encodeURIComponent(currentInventoryDepartment));
+    const cats = await res.json();
+    if (!cats.length) {
+      grid.innerHTML = '<div class="sr2-cat-empty"><i class="fas fa-tags"></i><p>No categories yet. Use "Manage Categories" to add one.</p></div>';
+      return;
+    }
+    grid.innerHTML = cats.map(c => `
+      <div class="sr2-cat-card" onclick="sr2_showItemsByCategory(${c.id}, '${(c.name||'').replace(/'/g,"\\'")}')">
+        <div class="sr2-cat-card-icon"><i class="fas fa-tag"></i></div>
+        <div class="sr2-cat-card-name">${c.name}</div>
+        <div class="sr2-cat-card-meta">Click to view items</div>
+        <div class="sr2-cat-card-arrow"><i class="fas fa-chevron-right"></i></div>
+      </div>
+    `).join('');
+  } catch(e) { grid.innerHTML = '<div style="color:var(--red);padding:20px">Failed to load categories.</div>'; }
+}
+
+// Items by Category (drill-down layer 2)
+async function sr2_loadCatItems(catId) {
+  const tbody = document.getElementById('sr2-cat-items-tbody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:20px"><i class="fas fa-spinner fa-spin"></i> Loading items…</td></tr>';
+  try {
+    const targetCatId = catId || currentCategoryId;
+    const res = await fetch(`/api/inventory/items?department=${encodeURIComponent(currentInventoryDepartment)}&category_id=${targetCatId}&page=1&per_page=200`);
+    const data = await res.json();
+    const items = data.items || data || [];
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:20px"><i class="fas fa-box-open"></i> No items in this category.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(i => {
+      const avail = parseFloat(i.available_qty || 0);
+      const min = parseFloat(i.min_stock || 0);
+      const isOut = avail <= 0;
+      const isLow = avail <= min;
+      const stat = isOut ? '<span class="badge bd-red">Out of Stock</span>' : isLow ? '<span class="badge bd-amber">Low Stock</span>' : '<span class="badge bd-green">In Stock</span>';
+      return `<tr>
+        <td>${i.item_code||'-'}</td>
+        <td>${i.name||'-'} <small class="td-muted">(ID: ${i.id})</small></td>
+        <td style="font-weight:bold">${avail}</td>
+        <td>${min} / ${parseFloat(i.max_stock||0)}</td>
+        <td>${i.rack_number||'-'} / ${i.bin_number||'-'}</td>
+        <td>${stat}</td>
+        <td>
+          <button class="btn btn-sm btn-secondary" onclick="sr2_editItem(${i.id},'${(i.item_code||'').replace(/'/g,"\\'")}','${(i.name||'').replace(/'/g,"\\'")}','${(i.department||'').replace(/'/g,"\\'")}','${(i.category_id||'').toString().replace(/'/g,"\\'")}','${i.min_stock||0}','${i.max_stock||0}','${(i.rack_number||'').replace(/'/g,"\\'")}','${(i.bin_number||'').replace(/'/g,"\\'")}')" title="Edit Item"><i class="fas fa-edit"></i> Edit</button>
+          <button class="btn btn-sm btn-primary" onclick="sr2_openItemDetail(${i.id})" title="View Details"><i class="fas fa-eye"></i> View</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:20px">Failed to load items.</td></tr>'; }
+}
+async function sr2_addCategory(e) {
+  e.preventDefault();
+  const name = document.getElementById('sr2-cat-name').value.trim();
+  const dept = normalizeDeptValue(document.getElementById('sr2-cat-dept').value);
+  if (!name) return toast('error','Validation','Category name is required');
+  try {
+    const res = await fetch('/api/inventory/categories', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, department:dept}) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to add category');
+    toast('success','Category Added','');
+    e.target.reset();
+    sr2_loadCategories();
+  } catch(err) { toast('error','Error', err.message); }
+}
+async function sr2_delCategory(id) {
+  if(!window.confirm('Delete this category?')) return;
+  const res = await fetch('/api/inventory/categories/'+id, { method:'DELETE' });
+  if (!res.ok) return toast('error','Error','Failed to delete');
+  toast('success','Deleted','');
+  sr2_loadCategories();
+}
+
+// Items
+async function sr2_loadItems() {
+  try {
+    const s = document.getElementById('sr2-items-search').value;
+    const deptSelect = document.getElementById('sr2-items-dept');
+    const deptValue = deptSelect ? deptSelect.value : '';
+    const d = deptValue ? normalizeDeptValue(deptValue) : '';
+    const st = document.getElementById('sr2-items-stock').value;
+    const res = await fetch(`/api/inventory/items?search=${encodeURIComponent(s)}&department=${encodeURIComponent(d)}&stock_filter=${st}&page=1&per_page=20`);
+    const payload = await res.json();
+    const items = Array.isArray(payload) ? payload : (payload.items || []);
+    document.getElementById('sr2-items-table').querySelector('tbody').innerHTML = items.map(i => {
+      const isLow = parseFloat(i.available_qty || 0) <= parseFloat(i.min_stock || 0);
+      const isOut = parseFloat(i.available_qty || 0) <= 0;
+      const stat = isOut ? '<span class="badge bd-red">Out of Stock</span>' : isLow ? '<span class="badge bd-amber">Low Stock</span>' : '<span class="badge bd-green">In Stock</span>';
+      return `<tr>
+        <td>${i.item_code || '-'}</td><td>${i.name || '-'} <small class="td-muted">(ID: ${i.id})</small></td><td>${i.department||'-'}</td><td>${i.category_name||'-'}</td>
+        <td style="font-weight:bold">${parseFloat(i.available_qty || 0)}</td><td>${parseFloat(i.min_stock || 0)} / ${parseFloat(i.max_stock || 0)}</td><td>${i.rack_number||'-'} / ${i.bin_number||'-'}</td>
+        <td>${stat}</td>
+        <td>
+          <button class="btn btn-sm btn-secondary" onclick="sr2_editItem(${i.id}, '${(i.item_code || '').replace(/'/g, "\\'")}', '${(i.name || '').replace(/'/g, "\\'")}', '${(i.department || '').replace(/'/g, "\\'")}', '${(i.category_id || '').replace(/'/g, "\\'")}', '${(i.min_stock || 0).toString().replace(/'/g, "\\'")}', '${(i.max_stock || 0).toString().replace(/'/g, "\\'")}', '${(i.rack_number || '').replace(/'/g, "\\'")}', '${(i.bin_number || '').replace(/'/g, "\\'")}')">Edit</button>
+          <button class="btn btn-sm btn-primary" onclick="sr2_openItemDetail(${i.id})"><i class="fas fa-eye"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function sr2_refreshCategoryOptions(dept) {
+  const select = document.getElementById('sr2-i-cat');
+  if (!select) return;
+  const normalized = normalizeDeptValue(dept || currentInventoryDepartment);
+  try {
+    const res = await fetch('/api/inventory/categories?department=' + encodeURIComponent(normalized));
+    const categories = await res.json();
+    const currentValue = select.value;
+    select.innerHTML = '<option value="">Select category</option>' + categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    if (currentValue) select.value = currentValue;
+  } catch (e) {
+    console.error(e);
+  }
+}
+function sr2_openItemModal() {
+  document.getElementById('sr2-item-form').reset();
+  document.getElementById('sr2-i-id').value = '';
+  document.getElementById('sr2-i-dept').value = currentInventoryDepartment;
+  document.getElementById('sr2-item-modal-title').textContent = 'Add Item';
+  sr2_refreshCategoryOptions(currentInventoryDepartment).then(() => {
+    if (currentCategoryId) {
+      const catSelect = document.getElementById('sr2-i-cat');
+      if (catSelect) catSelect.value = currentCategoryId;
+    }
+  });
+  document.getElementById('sr2-item-modal').classList.add('open');
+}
+async function sr2_openItemDetail(id) {
+  try {
+    const itemRes = await fetch(`/api/inventory/items/${id}`);
+    const item = await itemRes.json();
+    const ledgerRes = await fetch(`/api/inventory/reports/item_ledger?item_id=${id}`);
+    const ledger = await ledgerRes.json();
+    sr2DetailItemId = id;
+    document.getElementById('sr2-item-detail-body').innerHTML = `
+      <div class="form-grid fg-2" style="margin-bottom:12px">
+        <div><strong>Code</strong><div>${item.item_code || '-'}</div></div>
+        <div><strong>Name</strong><div>${item.name || '-'}</div></div>
+        <div><strong>Department</strong><div>${item.department || '-'}</div></div>
+        <div><strong>Category</strong><div>${item.category_name || '-'}</div></div>
+        <div><strong>Available Qty</strong><div>${parseFloat(item.available_qty || 0)}</div></div>
+        <div><strong>Rack / Bin</strong><div>${item.rack_number || '-'} / ${item.bin_number || '-'}</div></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Date</th><th>Ref</th><th>Qty In</th><th>Qty Out</th><th>Details</th></tr></thead>
+          <tbody>${ledger.map(r => `<tr><td>${r.type}</td><td>${r.date ? r.date.substring(0,10) : '-'}</td><td>${r.ref_no || '-'}</td><td>${r.qty_in || 0}</td><td>${r.qty_out || 0}</td><td>${r.details || '-'}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+    document.getElementById('sr2-item-detail-modal').classList.add('open');
+  } catch (e) { console.error(e); toast('error','Error',e.message); }
+}
+function sr2_editItem(id, code, name, dept, cat, min, max, rack, bin) {
+  document.getElementById('sr2-i-id').value = id;
+  document.getElementById('sr2-i-code').value = code !== 'null' ? code : '';
+  document.getElementById('sr2-i-name').value = name;
+  document.getElementById('sr2-i-dept').value = normalizeDeptValue(dept !== 'null' ? dept : 'ELCAB');
+  document.getElementById('sr2-i-cat').value = cat !== 'null' ? cat : '';
+  document.getElementById('sr2-i-min').value = min;
+  document.getElementById('sr2-i-max').value = max;
+  document.getElementById('sr2-i-rack').value = rack !== 'null' ? rack : '';
+  document.getElementById('sr2-i-bin').value = bin !== 'null' ? bin : '';
+  document.getElementById('sr2-item-modal-title').textContent = 'Edit Item';
+  sr2_refreshCategoryOptions(dept).then(() => {
+    document.getElementById('sr2-i-cat').value = cat !== 'null' ? cat : '';
+  });
+  document.getElementById('sr2-item-modal').classList.add('open');
+}
+async function sr2_submitItem(e) {
+  e.preventDefault();
+  const id = document.getElementById('sr2-i-id').value;
+  const payload = {
+    item_code: document.getElementById('sr2-i-code').value.trim(),
+    name: document.getElementById('sr2-i-name').value.trim(),
+    department: normalizeDeptValue(document.getElementById('sr2-i-dept').value),
+    category_id: document.getElementById('sr2-i-cat').value || null,
+    min_stock: document.getElementById('sr2-i-min').value || 0,
+    max_stock: document.getElementById('sr2-i-max').value || 0,
+    rack_number: document.getElementById('sr2-i-rack').value.trim(),
+    bin_number: document.getElementById('sr2-i-bin').value.trim()
+  };
+  if (!payload.item_code || !payload.name) return toast('error','Validation','Item code and name are required');
+  try {
+    const url = id ? '/api/inventory/items/extended/'+id : '/api/inventory/items/extended';
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Failed to save item');
+    toast('success','Saved successfully');
+    sr2_closeModal('sr2-item-modal');
+    sr2_loadItems();
+    if (currentCategoryId) {
+      sr2_loadCatItems(currentCategoryId);
+    }
+  } catch(err) { toast('error','Error', err.message); }
+}
+
+async function sr2_populateItemDropdowns(selectId, selectedId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  try {
+    const res = await fetch('/api/inventory/items?per_page=1000');
+    const payload = await res.json();
+    const itemList = Array.isArray(payload) ? payload : (payload.items || []);
+    select.innerHTML = '<option value="">-- Select Item --</option>' + itemList.map(i => 
+      `<option value="${i.id}" ${String(i.id) === String(selectedId) ? 'selected' : ''}>${i.name} (Code: ${i.item_code || 'N/A'}, Dept: ${i.department || 'N/A'}, Avail: ${i.available_qty || 0})</option>`
+    ).join('');
+  } catch(e) { console.error('Error populating item dropdown:', e); }
+}
+
+// Inward
+async function sr2_loadInward() {
+  try {
+    const res = await fetch('/api/inventory/inward');
+    const d = await res.json();
+    const tbody = document.getElementById('sr2-inward-table')?.querySelector('tbody');
+    if (!tbody) return;
+    if (!Array.isArray(d) || !d.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text-3)">No inward records found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.map(r => {
+      const dateStr = r.date ? String(r.date).substring(0,10) : '-';
+      return `<tr>
+        <td>${r.serial_no || '-'}</td><td>${dateStr}</td><td>${r.item_name || '-'} (${r.item_code || '-'})</td>
+        <td>${r.supplier_name || '-'}</td><td>${r.po_no||'-'} / ${r.grn_number||'-'}</td>
+        <td style="font-weight:bold;color:var(--green)">+${r.quantity_received || 0}</td><td>₹${r.unit_price || 0}</td><td>₹${r.total_value || 0}</td>
+        <td>${r.remarks||'-'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+function sr2_openInwardModal(itemId) {
+  const form = document.getElementById('sr2-inward-form');
+  if (form) form.reset();
+  const dateEl = document.getElementById('sr2-inw-date');
+  if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+  sr2_populateItemDropdowns('sr2-inw-item', itemId);
+  document.getElementById('sr2-inward-modal').classList.add('open');
+}
+async function sr2_submitInward(e) {
+  e.preventDefault();
+  const payload = {
+    date: document.getElementById('sr2-inw-date').value,
+    item_id: document.getElementById('sr2-inw-item').value,
+    quantity_received: document.getElementById('sr2-inw-qty').value,
+    unit_price: document.getElementById('sr2-inw-price').value,
+    supplier_name: document.getElementById('sr2-inw-supplier').value.trim(),
+    po_no: document.getElementById('sr2-inw-po').value.trim(),
+    grn_number: document.getElementById('sr2-inw-grn').value.trim(),
+    invoice_number: document.getElementById('sr2-inw-grn').value.trim(),
+    remarks: document.getElementById('sr2-inw-remarks').value.trim()
+  };
+  if (!payload.supplier_name) return toast('error','Validation','Supplier is required');
+  if (!payload.item_id || parseFloat(payload.quantity_received) <= 0) return toast('error','Validation','Valid item and quantity are required');
+  try {
+    const res = await fetch('/api/inventory/inward', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Failed to save inward');
+    toast('success','Inward Recorded');
+    sr2_closeModal('sr2-inward-modal');
+    sr2_loadInward();
+    sr2_loadDashboard();
+  } catch(err) { toast('error','Error', err.message); }
+}
+
+// Outward
+async function sr2_loadOutward() {
+  try {
+    const res = await fetch('/api/inventory/outward');
+    const d = await res.json();
+    const tbody = document.getElementById('sr2-outward-table')?.querySelector('tbody');
+    if (!tbody) return;
+    if (!Array.isArray(d) || !d.length) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text-3)">No outward records found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.map(r => {
+      const dateStr = r.date ? String(r.date).substring(0,10) : '-';
+      return `<tr>
+        <td>${r.serial_no || '-'}</td><td>${dateStr}</td><td>${r.item_name || '-'} (${r.item_code || '-'})</td>
+        <td>${r.issued_to || '-'}</td><td>${r.department||'-'}</td>
+        <td>${r.opening_balance || 0}</td><td style="font-weight:bold;color:var(--red)">-${r.quantity_issued || 0}</td><td>${r.closing_balance || 0}</td>
+        <td>${r.purpose||'-'}</td><td>${r.remarks||'-'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+function sr2_openOutwardModal(itemId) {
+  const form = document.getElementById('sr2-outward-form');
+  if (form) form.reset();
+  const dateEl = document.getElementById('sr2-out-date');
+  if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+  const deptEl = document.getElementById('sr2-out-dept');
+  if (deptEl) deptEl.value = currentInventoryDepartment;
+  sr2_populateItemDropdowns('sr2-out-item', itemId);
+  document.getElementById('sr2-outward-modal').classList.add('open');
+}
+async function sr2_submitOutward(e) {
+  e.preventDefault();
+  const payload = {
+    date: document.getElementById('sr2-out-date').value,
+    item_id: document.getElementById('sr2-out-item').value,
+    quantity_issued: document.getElementById('sr2-out-qty').value,
+    issued_to: document.getElementById('sr2-out-to').value.trim(),
+    department: normalizeDeptValue(document.getElementById('sr2-out-dept').value),
+    purpose: document.getElementById('sr2-out-purpose').value.trim()
+  };
+  if (!payload.issued_to) return toast('error','Validation','Issued To is required');
+  if (!payload.item_id || parseFloat(payload.quantity_issued) <= 0) return toast('error','Validation','Valid item and quantity are required');
+  try {
+    const res = await fetch('/api/inventory/outward', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Failed to save outward');
+    toast('success','Outward Recorded');
+    sr2_closeModal('sr2-outward-modal');
+    sr2_loadOutward();
+    sr2_loadDashboard();
+  } catch(err) { toast('error','Error', err.message); }
+}
+
+// Reports
+let currentReportData = [];
+async function sr2_generateReport() {
+  const type = document.getElementById('sr2-rep-type').value;
+  const from = document.getElementById('sr2-rep-from').value;
+  const to = document.getElementById('sr2-rep-to').value;
+  const item_id = document.getElementById('sr2-rep-item').value;
+  try {
+    const res = await fetch(`/api/inventory/reports/${type}?from=${from}&to=${to}&item_id=${item_id}`);
+    if(!res.ok) throw new Error(await res.text());
+    currentReportData = await res.json();
+    
+    if(!currentReportData.length) {
+       document.getElementById('sr2-rep-table').innerHTML = '<thead><tr><th>Result</th></tr></thead><tbody><tr><td>No data found.</td></tr></tbody>';
+       return;
+    }
+    
+    // Auto-generate table headers based on keys
+    const keys = Object.keys(currentReportData[0]);
+    const thead = '<thead><tr>' + keys.map(k=>`<th>${k.toUpperCase().replace(/_/g,' ')}</th>`).join('') + '</tr></thead>';
+    const tbody = '<tbody>' + currentReportData.map(r => '<tr>' + keys.map(k => `<td>${r[k] !== null ? r[k] : '-'}</td>`).join('') + '</tr>').join('') + '</tbody>';
+    document.getElementById('sr2-rep-table').innerHTML = thead + tbody;
+    
+  } catch(err) { toast('error','Error', err.message); }
+}
+
+function sr2_exportReport() {
+  if(!currentReportData || !currentReportData.length) return toast('error','No data to export');
+  const type = document.getElementById('sr2-rep-type').value;
+  const from = document.getElementById('sr2-rep-from').value;
+  const to = document.getElementById('sr2-rep-to').value;
+  const item_id = document.getElementById('sr2-rep-item').value;
+  const url = `/api/inventory/reports/${type}/export?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&item_id=${encodeURIComponent(item_id)}`;
+  window.open(url, '_blank');
+}
+
+let globalSearchTimer;
+async function sr2_globalSearch() {
+  clearTimeout(globalSearchTimer);
+  const q = document.getElementById('global-search').value;
+  const box = document.getElementById('global-search-results');
+  if(!q || q.length < 2) { box.style.display = 'none'; return; }
+  
+  globalSearchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch('/api/inventory/search?q=' + encodeURIComponent(q));
+      const results = await res.json();
+      box.innerHTML = '';
+      if(!results.length) {
+         box.innerHTML = '<div class="ac-item" style="color:var(--text-3)">No results found.</div>';
+      } else {
+         results.forEach(r => {
+           let title = r.name || r.item_name || r.supplier_name || 'Result';
+           let sub = r.type + (r.department ? ' | ' + r.department : '');
+           const div = document.createElement('div');
+           div.className = 'ac-item';
+           div.innerHTML = `<strong>${title}</strong><small>${sub}</small>`;
+           div.onclick = () => {
+              document.getElementById('global-search').value = '';
+              box.style.display = 'none';
+              switchTab('stock-register');
+              if(r.type === 'Item') { sr2_showManageCat(); sr2_switchTab('items'); }
+              else if(r.type === 'Category') { sr2_showManageCat(); sr2_switchTab('categories'); }
+              else if(r.type === 'Inward') sr2_showInward();
+           };
+           box.appendChild(div);
+         });
+      }
+      box.style.display = 'block';
+    } catch(e) { console.error(e); }
+  }, 300);
+}
+document.addEventListener('click', e => {
+  const box = document.getElementById('global-search-results');
+  if(box && !e.target.closest('#global-search')) box.style.display = 'none';
+});
+</script>
+
 </script>
 </body>
 </html>
