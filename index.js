@@ -1346,7 +1346,7 @@ app.get("/api/account-details", async (req, res) => {
         ie.supplier_ifsc_code
       FROM purchase_orders po
       LEFT JOIN inventory_entries ie ON po.id = ie.purchase_order_id
-      WHERE po.status IN ( 'inventory_processed' )
+      WHERE po.status ='inventory_processed'
     `;
     let params = [];
     let paramCount = 0;
