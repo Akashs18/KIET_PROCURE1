@@ -64,6 +64,29 @@ const pool = new Pool({
   password:'KIET@tech123',
     port: 5432,
 });
+
+// =============================
+// DB INIT — create tables if not exist
+// =============================
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS security_grn_items (
+        id             SERIAL PRIMARY KEY,
+        purchase_order_id INTEGER NOT NULL,
+        grn_number     VARCHAR(50) NOT NULL,
+        item_id        INTEGER,
+        description    TEXT,
+        ordered_qty    INTEGER,
+        received_qty   INTEGER NOT NULL DEFAULT 0,
+        created_at     TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    console.log('✅ security_grn_items table ready');
+  } catch (err) {
+    console.error('❌ Failed to create security_grn_items table:', err.message);
+  }
+})();
 app.use('/qt_uploads', express.static(path.join(__dirname, 'qt_uploads')));
 
 
@@ -1893,31 +1916,128 @@ KIET TECHNOLOGIES PVT LTD,
   }
 });
 
-// Mark as Received
+// Mark as Receiving (start receiving — sets status to 'receiving')
 app.put("/api/orders/:id/receive", async (req, res) => {
   const { id } = req.params;
   const { rows } = await pool.query(
-    "UPDATE purchase_orders SET status='received' WHERE id=$1 RETURNING supplier_name",
+    "UPDATE purchase_orders SET status='receiving' WHERE id=$1 AND status='sent' RETURNING id, supplier_name",
     [id]
   );
-  if (!rows.length) return res.status(404).json({ error: "Order not found" });
-
-  const supplierName = rows[0].supplier_name;
-
-  // Generate gen_number and insert into grn_gen_entries
-  const genNumber = await generateGenNumber();
-  try {
-    await pool.query(
-      `INSERT INTO grn_gen_entries (purchase_order_id, gen_number, grn_number, supplier_name)
-       VALUES ($1, $2, NULL, $3)`,
-      [id, genNumber, supplierName]
-    );
-  } catch (err) {
-    console.error("Error inserting into grn_gen_entries:", err);
-    // Continue, as order update succeeded
+  if (!rows.length) {
+    // If already receiving or received, just return success
+    const existing = await pool.query("SELECT id, supplier_name FROM purchase_orders WHERE id=$1", [id]);
+    if (!existing.rows.length) return res.status(404).json({ error: "Order not found" });
+    return res.json({ success: true, order: existing.rows[0] });
   }
+  res.json({ success: true, order: rows[0] });
+});
 
-  res.json({ success: true, order: rows[0], genNumber });
+// ── Security: Revert order back to Pending (sent) ─────────────────────────────
+app.put("/api/security/revert/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { rows } = await pool.query(
+      "UPDATE purchase_orders SET status='sent' WHERE id=$1 AND status='receiving' RETURNING id, supplier_name",
+      [orderId]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Order not found or not in receiving state" });
+    res.json({ success: true, order: rows[0] });
+  } catch (err) {
+    console.error("Error reverting order:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── Security: Get all GRNs for an order ──────────────────────────────────────
+app.get("/api/security/grns/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { rows } = await pool.query(
+      `SELECT DISTINCT grn_number, created_at
+       FROM security_grn_items
+       WHERE purchase_order_id = $1
+       ORDER BY created_at DESC`,
+      [orderId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching GRNs:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── Security: Get items for a specific GRN ────────────────────────────────────
+app.get("/api/security/grns/:orderId/:grnNumber", async (req, res) => {
+  try {
+    const { orderId, grnNumber } = req.params;
+    const { rows } = await pool.query(
+      `SELECT * FROM security_grn_items
+       WHERE purchase_order_id = $1 AND grn_number = $2
+       ORDER BY id`,
+      [orderId, grnNumber]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching GRN items:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── Security: Create a new GRN with received items ────────────────────────────
+app.post("/api/security/grns", async (req, res) => {
+  try {
+    const { purchase_order_id, items } = req.body;
+    // items: [{ item_id, description, ordered_qty, received_qty }]
+    if (!purchase_order_id || !Array.isArray(items) || !items.length) {
+      return res.status(400).json({ error: "purchase_order_id and items[] are required" });
+    }
+
+    // Generate a unique GRN number
+    const grn_number = await generateGrnNumber();
+
+    // Insert all items in one go
+    for (const item of items) {
+      await pool.query(
+        `INSERT INTO security_grn_items
+           (purchase_order_id, grn_number, item_id, description, ordered_qty, received_qty)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [purchase_order_id, grn_number, item.item_id || null, item.description, item.ordered_qty || 0, item.received_qty]
+      );
+    }
+
+    // Also upsert into grn_gen_entries so Inventory can see the GRN
+    try {
+      const poRes = await pool.query("SELECT supplier_name FROM purchase_orders WHERE id=$1", [purchase_order_id]);
+      const supplierName = poRes.rows[0]?.supplier_name || '';
+      await pool.query(
+        `INSERT INTO grn_gen_entries (purchase_order_id, grn_number, supplier_name)
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [purchase_order_id, grn_number, supplierName]
+      );
+    } catch (_) { /* non-blocking */ }
+
+    res.json({ success: true, grn_number });
+  } catch (err) {
+    console.error("Error creating GRN:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── Security: Complete receiving (mark order 'received') ──────────────────────
+app.put("/api/security/complete/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { rows } = await pool.query(
+      "UPDATE purchase_orders SET status='received' WHERE id=$1 RETURNING id, supplier_name",
+      [orderId]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Order not found" });
+    res.json({ success: true, order: rows[0] });
+  } catch (err) {
+    console.error("Error completing order:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 //md
