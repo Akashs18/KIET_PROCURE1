@@ -2735,7 +2735,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <div class="form-group">
     <label for="notes">Additional Notes</label>
-    <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+    <textarea class="form-control" id="notes" name="notes" rows="2" required></textarea>
   </div>
 
   <button type="submit" class="btn">
@@ -2965,7 +2965,7 @@ function populateItemTable(items) {
                         </div>
                     </div>
 
-                    <!-- Consignor Information Section -->
+                    <!-- CAonsignor Information Section -->
                     <div class="form-section">
                         <h2 class="section-title">Consignor Information (From)</h2>
                         <div class="form-row">
@@ -3454,7 +3454,7 @@ document.getElementById("deliveryChallanForm").addEventListener("submit", async 
                                 <tbody id="itemsTableBody">
                                     <tr class="item-row">
                                         <td><input type="text" name="itemPartNo[]" placeholder="Part No"></td>
-                                        <td> <textarea class="item-descriptin" 
+                                        <td> <textarea class="item-description" 
               name="itemDescription[]" 
               placeholder="Item or service description" 
               rows="4" 
@@ -4291,7 +4291,7 @@ async function savePoeItems(id) {
                     <p>Create professional VK quotations for your clients</p>
                 </div>
                 <div class="form-container">
-                    <form id="vkQuotationForm" method="POST" action="/api/send-vk-quotation-approval" enctype="multipart/form-data">
+                    <form id="vkQuotationForm" method="POST">
                         <!-- Quotation Information Section -->
                         <div class="form-section">
                             <h2 class="section-title">Quotation Information</h2>
@@ -4521,7 +4521,7 @@ async function savePoeItems(id) {
                                 </thead>
                                 <tbody>
                                     <% const vkItems = [
-                                        { description: "Standard Housing", cost: 135459.00, qty: 1, value: 135459.52 },
+                                        { description: "Standard Housing", cost: 135459.52, qty: 1, value: 135459.52 },
                                         { description: "Hypertek parts and pins (Wiring class-2)", cost: 17.14, qty: 350, value: 6000.00, hasClass: true },
                                         { description: "SOK 10150", cost: 10600, qty: 1, value: 10600 },
                                         { description: "Koaxial-Stift-Radial", cost:4770, qty: 1, value: 4770.00 },
@@ -4547,7 +4547,7 @@ async function savePoeItems(id) {
                value="<%= item.description %>" 
                class="item-description-input" 
                id="vk-hypertek-description-input" 
-               placeholder="Enter Hypertek details">
+               placeholder="Enter Hypertek details" readyonly>
     <% 
     } else { 
     %>
@@ -4573,9 +4573,9 @@ async function savePoeItems(id) {
                                                         <option value="11" data-cost="155.03">Class 11 - ₹ 155.03</option>
                                                         <option value="12" data-cost="153.00">Class 12 - ₹ 153.00</option>
                                                     </select>
-                                                    <input type="hidden" name="priceInput[]" value="<%= item.cost.toFixed(2) %>" class="price-input-hidden" data-index="<%= index %>">
+                                                    <input type="hidden" name="priceInput[]" value="<%= item.cost.toFixed(2) %>" class="price-input-hidden" data-index="<%= index %>" readonly>
                                                 <% } else { %>
-                                                    <div style="display: flex; align-items: center;"><span class="currency-symbol">₹</span><input type="number" step="1" name="priceInput[]" value="<%= item.cost.toFixed(2) %>" class="price-input" data-index="<%= index %>"></div>
+                                                    <div style="display: flex; align-items: center;"><span class="currency-symbol">₹</span><input type="number" step="1" name="priceInput[]" value="<%= item.cost.toFixed(2) %>" class="price-input" data-index="<%= index %>" readonly></div>
                                                 <% } %>
                                             </td>
                                             <td><input id="vk-numb" type="number" step="1" value="<%= item.qty %>" data-cost="<%= item.cost %>" data-index="<%= index %>" class="qty-input" name="qtyInput[]"></td>
@@ -4651,7 +4651,7 @@ async function savePoeItems(id) {
                     <script>
 document.getElementById("vkQuotationForm").addEventListener("submit", async function (e) {
   e.preventDefault(); 
-  if (typeof startLoader === 'function') startLoader(); 
+  if (typeof startLoader === 'function') startLoader('sending VK quotation...'); 
 
   const form = this;
   const formData = new FormData(form);
@@ -4675,7 +4675,7 @@ document.getElementById("vkQuotationForm").addEventListener("submit", async func
     }
   } catch (err) {
     console.error('VK Submit Error:', err);
-    alert("Server error ❌");
+    // alert("Server error ❌");
     if (typeof stopLoader === 'function') stopLoader();
   }
 });
@@ -4985,6 +4985,7 @@ let currencySymbol = '₹';
                     updateClassCost(this);
                     updateHypertekDescription();
                     updatePvRates();
+                    updatePvTotal();
                 });
             });
 
@@ -5270,10 +5271,10 @@ let currencySymbol = '₹';
             });
 
             // VK Form submission
-            document.getElementById('vkQuotationForm').addEventListener('submit', function(e) {
-                // Show loading screen
-                document.getElementById('loadingOverlay').style.display = 'flex';
-            });
+            // document.getElementById('vkQuotationForm').addEventListener('submit', function(e) {
+            //     // Show loading screen
+            //     document.getElementById('loadingOverlay').style.display = 'flex';
+            // });
 
         }
 
@@ -5389,7 +5390,6 @@ let currencySymbol = '₹';
     const totalCosts = parseFloat(totalCostsEl?.textContent || '0') || 0;
 
     const exportInput = document.querySelector('.price-input[data-index="export"]');
-
     const boxInput = document.querySelector('.price-input[data-index="box"]');
 
     const exportValue = parseFloat(
@@ -5400,65 +5400,56 @@ let currencySymbol = '₹';
         boxInput?.closest('tr')?.querySelector('.value-display')?.textContent || '0'
     ) || 0;
 
-    const totalRate = totalCosts + exportValue + boxValue;
-// Calculate total PV qty
-    const pvQtyInputs = document.querySelectorAll('.pv-adaptor-qty-input');
-    let totalPvQty = 0;
+    const unitRate = totalCosts + exportValue + boxValue;
 
+    const pvQtyInputs = document.querySelectorAll('#vk .pv-adaptor-qty-input');
+    let totalPvQty = 0;
     pvQtyInputs.forEach(input => {
         totalPvQty += parseFloat(input.value) || 0;
     });
 
     if (totalPvQty === 0) return;
 
-    const unitRate = totalRate;
-
-    document.querySelectorAll('.pv-rate-input').forEach(input => {
-        input.value = unitRate.toFixed(2);
-
-        const row = input.closest('tr');
-        if (!row) return;
-
+    // Update each row's rate and value display — NO recursive calls here
+    document.querySelectorAll('#vk .pv-row').forEach(row => {
+        const rateInput = row.querySelector('.pv-rate-input');
         const qtyInput = row.querySelector('.pv-adaptor-qty-input');
         const valueDisplay = row.querySelector('.pv-value-display');
-        updatePvRates();
 
-        if (qtyInput && valueDisplay) {
-            updatePvValue(qtyInput, input, valueDisplay);
-        }
+        if (!rateInput || !qtyInput || !valueDisplay) return;
+
+        rateInput.value = unitRate.toFixed(2);
+
+        const qty = parseFloat(qtyInput.value) || 0;
+        const value = qty * unitRate;
+        valueDisplay.textContent = value.toFixed(2);
     });
+
+    // Update grand total once after all rows are updated
+    updatePvTotal();
 }
 
+function updatePvValue(qtyInput, rateInput, valueDisplay) {
+    const qty = parseFloat(qtyInput.value) || 0;
+    const rate = parseFloat(rateInput.value) || 0;
+    const value = qty * rate;
+    valueDisplay.textContent = value.toFixed(2);
+    // No recursive calls — just update the total
+    updatePvTotal();
+}
 
-        function updatePvValue(qtyInput, rateInput, valueDisplay) {
-            const qty = parseFloat(qtyInput.value) || 0;
-            const rate = parseFloat(rateInput.value) || 0;
-            const value = qty * rate;
-            valueDisplay.textContent = value.toFixed(2);
-            console.log('Updated PV Value:', value.toFixed(2), 'for Qty:', qty, 'Rate:', rate);
-            updatePvTotal();
-            updatePvRates();
-            
-
-            
-
-            
-        }
-
-        function updatePvTotal() {
-            const pvValueDisplays = document.querySelectorAll('#vk .pv-value-display');
-            let total = 0;
-            pvValueDisplays.forEach(display => {
-                total += parseFloat(display.textContent) || 0;
-            });
-            const pvTotalAmount = document.getElementById('vk-pv-total-amount');
-            if (pvTotalAmount) {
-                pvTotalAmount.textContent = total.toFixed(2);
-            }
-            updatePvRates()
-        
-
-        }
+function updatePvTotal() {
+    const pvValueDisplays = document.querySelectorAll('#vk .pv-value-display');
+    let total = 0;
+    pvValueDisplays.forEach(display => {
+        total += parseFloat(display.textContent) || 0;
+    });
+    const pvTotalAmount = document.getElementById('vk-pv-total-amount');
+    if (pvTotalAmount) {
+        pvTotalAmount.textContent = total.toFixed(2);
+    }
+    // No call to updatePvRates() here — that was the circular dependency
+}
 
         function addPvRow() {
             const vkPvTableBody = document.getElementById('vkPvTableBody');
@@ -6496,7 +6487,7 @@ async function loadAssignedProjects() {
         <p><b>Assigned On:</b> ${p.assigned_on ? new Date(p.assigned_on).toLocaleDateString() : '-'}</p>
         <p><b>Budget:</b> ₹${Number(p.budget || 0).toLocaleString()}</p>
         <p><b>Quantity:</b> ${p.quantity}</p>
-        <p><b>Remaining:</b> ₹${Number(p.remaining_cost|| 0).toLocaleString()}</p>
+        <p><b>Remaining:</b> ₹${Number(p.remaining_budget|| 0).toLocaleString()}</p>
         <p><b>Target date:</b> ${p.target_date ? new Date(p.target_date).toLocaleDateString() : "Not set"}</p>
         <p><span class="status ${p.delivery_status?.toLowerCase() || ''}"> delivery_status: ${p.delivery_status || '-'}</span></p>
         <span class="status-text"> Project: ${p.project_status || "Not Completed"}</span>
@@ -7599,7 +7590,7 @@ ${order.status?.toLowerCase() === "pending"
                 return;
             }
             
-
+// addition of checkbox from 7614 7615
             approvedQuotations.forEach(quotation => {
                 console.log("Rendering approved quotation:", quotation);
                 const card = document.createElement('div');
@@ -7619,9 +7610,17 @@ ${order.status?.toLowerCase() === "pending"
                         <p><strong>Payment  : </strong>  ${ quotation.paymentterms}</p>
                         <p><strong>Delivery Duration : </strong> ${ quotation.deliveryduration}</p>
                         <p><strong>Total:</strong> ${quotation.currency === 'INR' ? '₹' : '$'}${quotation.totalamount}</p>
+                        
+                        <label for='selectQuote_${quotation.id}'>PO Recieved</label>
+                        <input type='checkbox' id='selectQuote_${quotation.id}' name='selectQuote' value='${quotation.id}'>
+                        <label for='selectQuote_${quotation.id}'>PO Recieved</label>
+                        <input type='checkbox' id='selectQuote_${quotation.id}' name='selectQuote' value='${quotation.id}'>
+                        <label for='selectQuote_${quotation.id}'>PO Recieved</label>
+                        <input type='checkbox' id='selectQuote_${quotation.id}' name='selectQuote' value='${quotation.id}'>
 
                     </div>
                     <div class="status-footer">
+
                         <button class="btn btn-primary download-btn" data-id="${quotation.id}">Download PDF</button>
                         <i class='fa-solid fa-edit edit-icon' style='margin-left: 10px; cursor: pointer;' data-id="${quotation.id}" onclick='editQuote(${quotation.id})'> Revise</i>
                     </div>
@@ -8044,66 +8043,66 @@ ${order.status?.toLowerCase() === "pending"
         });
 
         // VK Send Approval Request button functionality
-        const vkRaiseRequestBtn = document.getElementById('raiseRequest');
-        vkRaiseRequestBtn.addEventListener('click', async function() {
-            const form = document.getElementById('quotationForm');
-            const formData = new FormData(form);
+        // const vkRaiseRequestBtn = document.getElementById('raiseRequest');
+        // vkRaiseRequestBtn.addEventListener('click', async function() {
+        //     const form = document.getElementById('quotationForm');
+        //     const formData = new FormData(form);
 
-            // Collect VK specific data
-            const pvAdaptors = [];
-            document.querySelectorAll('#pvTableBody tr').forEach(row => {
-                const adaptor = {
-                    qty: parseFloat(row.querySelector('input[name="pvQty[]"]').value) || 0,
-                    familyName: row.querySelector('textarea[name="pvFamilyName[]"]').value,
-                    revNo: row.querySelector('input[name="pvRevNo[]"]').value,
-                    coaxialPin: row.querySelector('input[name="pvCoaxialPin[]"]').value,
-                    sokCard: row.querySelector('input[name="pvSokCard[]"]').value,
-                    sokQty: parseFloat(row.querySelector('input[name="pvSokQty[]"]').value) || 0,
-                    rate: parseFloat(row.querySelector('input[name="pvRate[]"]').value) || 0
-                };
-                pvAdaptors.push(adaptor);
-            });
+        //     // Collect VK specific data
+        //     const pvAdaptors = [];
+        //     document.querySelectorAll('#pvTableBody tr').forEach(row => {
+        //         const adaptor = {
+        //             qty: parseFloat(row.querySelector('input[name="pvQty[]"]').value) || 0,
+        //             familyName: row.querySelector('textarea[name="pvFamilyName[]"]').value,
+        //             revNo: row.querySelector('input[name="pvRevNo[]"]').value,
+        //             coaxialPin: row.querySelector('input[name="pvCoaxialPin[]"]').value,
+        //             sokCard: row.querySelector('input[name="pvSokCard[]"]').value,
+        //             sokQty: parseFloat(row.querySelector('input[name="pvSokQty[]"]').value) || 0,
+        //             rate: parseFloat(row.querySelector('input[name="pvRate[]"]').value) || 0
+        //         };
+        //         pvAdaptors.push(adaptor);
+        //     });
 
-            const kietCosts = [];
-                document.querySelectorAll('#vk .kiet-table tbody tr').forEach((row, index) => {
-                    if (index < 4) { // First 4 rows are the main items
-                        const description = row.querySelector('td:first-child').textContent.trim();
-                        const cost = parseFloat(row.querySelector('input[name="priceInput[]"]').value) || 0;
-                        const qty = parseFloat(row.querySelector('input[name="qtyInput[]"]').value) || 0;
-                        const totalValue = cost * qty;
+        //     const kietCosts = [];
+        //         document.querySelectorAll('#vk .kiet-table tbody tr').forEach((row, index) => {
+        //             if (index < 4) { // First 4 rows are the main items
+        //                 const description = row.querySelector('td:first-child').textContent.trim();
+        //                 const cost = parseFloat(row.querySelector('input[name="priceInput[]"]').value) || 0;
+        //                 const qty = parseFloat(row.querySelector('input[name="qtyInput[]"]').value) || 0;
+        //                 const totalValue = cost * qty;
 
-                        kietCosts.push({
-                            description: description,
-                            cost: cost,
-                            qty: qty,
-                            totalValue: totalValue
-                        });
-                    }
-                });
+        //                 kietCosts.push({
+        //                     description: description,
+        //                     cost: cost,
+        //                     qty: qty,
+        //                     totalValue: totalValue
+        //                 });
+        //             }
+        //         });
 
-            formData.append('pvAdaptors', JSON.stringify(pvAdaptors));
-            formData.append('kietCosts', JSON.stringify(kietCosts));
-            formData.append('status', 'pending');
+        //     formData.append('pvAdaptors', JSON.stringify(pvAdaptors));
+        //     formData.append('kietCosts', JSON.stringify(kietCosts));
+        //     formData.append('status', 'pending');
 
-            try {
-                const response = await fetch('/api/send-vk-quotation-approval', {
-                    method: 'POST',
-                    body: formData
-                });
+        //     try {
+        //         const response = await fetch('/api/send-vk-quotation-approval', {
+        //             method: 'POST',
+        //             body: formData
+        //         });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    alert('VK quotation approval request sent successfully! MD will review your quotation.');
-                    // Reset form or redirect as needed
-                } else {
-                    const error = await response.json();
-                    alert('Error sending VK approval request: ' + (error.message || 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Error sending VK approval request:', error);
-                alert('Error sending VK approval request. Please try again.');
-            }
-        });
+        //         if (response.ok) {
+        //             const result = await response.json();
+        //             alert('VK quotation approval request sent successfully! MD will review your quotation.');
+        //             // Reset form or redirect as needed
+        //         } else {
+        //             const error = await response.json();
+        //             alert('Error sending VK approval request: ' + (error.message || 'Unknown error'));
+        //         }
+        //     } catch (error) {
+        //         console.error('Error sending VK approval request:', error);
+        //         alert('Error sending VK approval request. Please try again.');
+        //     }
+        // });
 
         // Save Quotation button functionality
         const saveQuotationBtn = document.getElementById('saveQuotation');
@@ -8151,10 +8150,10 @@ ${order.status?.toLowerCase() === "pending"
         });
 
         // Form submission with loading screen
-        document.getElementById('vkQuotationForm').addEventListener('submit', function(e) {
-            // Show loading screen
-            document.getElementById('loadingOverlay').style.display = 'flex';
-        });
+        // document.getElementById('vkQuotationForm').addEventListener('submit', function(e) {
+        //     // Show loading screen
+        //     document.getElementById('loadingOverlay').style.display = 'flex';
+        // });
 
 // MAE Form JavaScript - SAFE VERSION
         document.addEventListener('DOMContentLoaded', function() {
@@ -8501,7 +8500,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 newRow.className = 'item-row';
                 newRow.innerHTML = `
                     <td><input type="text" name="itemPartNo[]" placeholder="Part No"></td>
-                    <td><input type="text" class="item-description" name="itemDescription[]" placeholder="Item or service description" required></td>
+                    <td> <textarea class="item-description" 
+              name="itemDescription[]" 
+              placeholder="Item or service description" 
+              rows="4" 
+              style="
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border 0.3s;
+    resize: vertical;
+"></textarea></td>
                     <td><input type="text" name="itemHSN[]" placeholder="HSN Code"></td>
                     <td><input type="number" step="0.01" name="itemQuantity[]" placeholder="Qty" required></td>
                     <td><input type="text" name="itemUnit[]" placeholder="Unit" value="Nos"></td>
@@ -8566,7 +8577,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Open popup when clicking item description input
 document.addEventListener("click", function(event) {
-    if (event.target.classList.contains("item-descriptin")) {
+    if (event.target.classList.contains("item-description")) {
         activeInput = event.target;
         openPopup();
     }

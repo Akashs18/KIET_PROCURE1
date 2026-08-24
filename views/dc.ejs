@@ -634,7 +634,7 @@
         }
 
         // Add event listeners to a table row
-        function addRowEventListeners(row) {
+        async function addRowEventListeners(row) {
             // Delete row
             row.querySelector('.delete-row').addEventListener('click', function() {
                 if (document.querySelectorAll('#itemTable tbody tr').length > 1) {
