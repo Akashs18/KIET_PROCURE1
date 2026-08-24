@@ -3,493 +3,479 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Security Verification - All Orders</title>
+<title>Security Verification - KIET Technologies</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 <style>
-  /* ---------------------- Variables ---------------------- */
-
-
-  input[type="checkbox"] {
-  width: 20px;   /* increase size */
-  height: 20px;
-  transform: scale(1.5);  /* make it 1.5x bigger */
-  cursor: pointer;        /* optional: makes it feel clickable */
-}
-
   :root {
-    --primary: #2563eb;
-    --primary-dark: #1e40af;
-    --secondary: #ef4444;
-    --success: #16a34a;
-    --light: #ffffff;
-    --dark: #111827;
-    --gray: #6b7280;
-    --bg: #f3f4f6;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --primary:#2563eb; --primary-dark:#1e40af; --success:#16a34a;
+    --danger:#ef4444; --warning:#f59e0b; --gray:#6b7280; --bg:#f1f5f9;
+    --shadow:0 4px 24px rgba(0,0,0,.08); --radius:12px;
   }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Inter","Segoe UI",sans-serif;background:var(--bg);color:#111827;min-height:100vh;}
 
-  body {
-    font-family: "Inter", "Segoe UI", sans-serif;
-    background: linear-gradient(135deg, #dbeafe, #fef9c3);
-    margin: 0;
-    color: var(--dark);
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+  header{background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem;box-shadow:var(--shadow);}
+  header img{height:70px;}
+  .user-info{display:flex;align-items:center;gap:.75rem;}
+  .avatar{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid rgba(255,255,255,.4);}
+  .logout-btn{background:var(--danger);color:#fff;border:none;padding:.5rem 1.1rem;border-radius:8px;cursor:pointer;font-weight:600;transition:.2s;}
+  .logout-btn:hover{background:#dc2626;}
 
-  /* ---------------------- Header ---------------------- */
-  header {
-    background-color: var(--primary);
-    color: var(--light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    box-shadow: var(--shadow);
-  }
+  .container{max-width:1400px;margin:32px auto;padding:0 1.5rem;}
+  h2{font-size:1.9rem;font-weight:800;color:var(--primary-dark);margin-bottom:1.5rem;text-align:center;}
 
-  header img {
-    height: 10rem;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-  }
+  /* toolbar */
+  .toolbar{display:flex;gap:1rem;margin-bottom:1rem;align-items:center;flex-wrap:wrap;}
+  .toolbar input{flex:1;min-width:220px;padding:.6rem 1rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.95rem;outline:none;transition:.2s;}
+  .toolbar input:focus{border-color:var(--primary);}
+  .filter-btns{display:flex;gap:.4rem;}
+  .fbtn{border:1.5px solid #e2e8f0;background:#fff;padding:.5rem .9rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:.2s;}
+  .fbtn.active,.fbtn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
 
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
+  /* summary chips */
+  .chips{display:flex;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+  .chip{background:#fff;border:1.5px solid #e2e8f0;border-radius:999px;padding:.35rem 1rem;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:.4rem;}
+  .chip.pending{border-color:var(--warning);color:#92400e;background:#fffbeb;}
+  .chip.receiving{border-color:#10b981;color:#065f46;background:#ecfdf5;}
 
-  .user-avatar {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 9999px;
-    background: var(--light);
-    color: var(--primary-dark);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 700;
-    font-size: 1rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  }
+  /* table */
+  .table-wrap{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto;}
+  table{width:100%;border-collapse:collapse;min-width:850px;}
+  thead th{background:var(--primary-dark);color:#fff;padding:.85rem 1rem;text-align:left;font-size:.85rem;font-weight:600;white-space:nowrap;}
+  thead th:first-child{border-radius:var(--radius) 0 0 0;}
+  thead th:last-child{border-radius:0 var(--radius) 0 0;}
+  tbody tr{border-bottom:1px solid #f1f5f9;transition:background .15s;}
+  tbody tr:hover{background:#f8fafc;}
+  tbody td{padding:.8rem 1rem;font-size:.88rem;vertical-align:middle;}
 
-  .logout-btn {
-    background-color: #ef4444;
-    color: white;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  .logout-btn:hover {
-    background-color: #dc2626;
-  }
+  /* status badge */
+  .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .7rem;border-radius:999px;font-size:.78rem;font-weight:700;}
+  .badge-pending{background:#fef3c7;color:#92400e;}
+  .badge-receiving{background:#d1fae5;color:#065f46;}
 
-  /* ---------------------- Container ---------------------- */
-  .container {
-    max-width: 1400px;
-    margin: 40px auto;
-    padding: 0 2rem;
-  }
+  /* action buttons */
+  .actions{display:flex;gap:.4rem;flex-wrap:wrap;}
+  .btn{border:none;padding:.4rem .85rem;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;transition:.2s;white-space:nowrap;}
+  .btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
+  .btn-success{background:var(--success);color:#fff;}.btn-success:hover{background:#15803d;}
+  .btn-warning{background:var(--warning);color:#fff;}.btn-warning:hover{background:#d97706;}
+  .btn-gray{background:#e2e8f0;color:#374151;}.btn-gray:hover{background:#cbd5e1;}
+  .btn-danger{background:var(--danger);color:#fff;}.btn-danger:hover{background:#dc2626;}
 
-  h2 {
-    font-size: 2.25rem;
-    font-weight: bold;
-    text-align: center;
-    color: var(--primary-dark);
-    margin-bottom: 2rem;
-  }
+  /* empty */
+  .empty{text-align:center;padding:3rem;color:var(--gray);}
+  .empty i{font-size:2.5rem;opacity:.35;display:block;margin-bottom:.75rem;}
 
-  /* ---------------------- Filter Input ---------------------- */
-  .filter-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-  }
+  /* modal */
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:2000;justify-content:center;align-items:flex-start;padding-top:40px;}
+  .modal.open{display:flex;}
+  .modal-box{background:#fff;border-radius:var(--radius);width:95%;max-width:860px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:fadeUp .3s ease;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.5rem;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;z-index:1;}
+  .modal-head h3{font-size:1.15rem;font-weight:700;color:var(--primary-dark);}
+  .modal-body{padding:1.5rem;}
+  .close-x{background:none;border:none;font-size:1.7rem;cursor:pointer;color:var(--gray);line-height:1;}
+  .close-x:hover{color:var(--danger);}
 
-  #po-filter {
-    width: 100%;
-    max-width: 28rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    outline: none;
-    transition: 0.3s;
-  }
-  #po-filter:focus {
-    box-shadow: 0 0 0 2px var(--primary);
-    border-color: transparent;
-  }
+  /* item table inside modal */
+  .itbl{width:100%;border-collapse:collapse;margin-bottom:1.25rem;}
+  .itbl th{background:var(--primary-dark);color:#fff;padding:.65rem .9rem;font-size:.82rem;text-align:left;}
+  .itbl td{padding:.6rem .9rem;border-bottom:1px solid #f1f5f9;font-size:.85rem;}
+  .itbl tbody tr:hover{background:#f8fafc;}
+  .qty-inp{width:75px;padding:.35rem .45rem;border:1.5px solid #e2e8f0;border-radius:6px;text-align:center;font-size:.85rem;}
+  .qty-inp:focus{outline:none;border-color:var(--primary);}
+  input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--primary);}
 
-  /* ---------------------- Orders ---------------------- */
-  .orders-container {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(12px);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-  }
+  /* GRN chip */
+  .grn-chip{display:inline-flex;align-items:center;gap:.3rem;background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;border-radius:6px;padding:.2rem .6rem;font-size:.78rem;font-weight:700;font-family:monospace;}
 
-  .order-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
-  }
-  .order-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  }
+  /* toast */
+  .toast{position:fixed;top:1.25rem;right:1.25rem;padding:.9rem 1.4rem;border-radius:.75rem;box-shadow:var(--shadow);font-size:.95rem;opacity:0;transform:translateX(120%);transition:.4s;z-index:9999;color:#fff;max-width:340px;}
+  .toast.show{opacity:1;transform:translateX(0);}
+  .toast.error{background:var(--danger);}
+  .toast.success{background:linear-gradient(135deg,var(--success),#22c55e);}
 
-  .order-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .supplier-name {
-    font-weight: 700;
-    font-size: 1.625rem;
-    color: var(--primary-dark);
-  }
-
-  .order-id {
-    font-size: 1.25rem;
-    color: var(--gray);
-  }
-
-  .toggle-products-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--gray);
-    transition: 0.2s;
-  }
-  .toggle-products-btn:hover {
-    color: var(--primary);
-    transform: scale(1.15);
-  }
-
-  /* ---------------------- Modal ---------------------- */
-  .modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
-  justify-content: center;   /* keeps it centered horizontally */
-  align-items: flex-start;   /* push modal content to the top */
-  z-index: 2000;
-  padding-top: 30px;         /* optional spacing from top */
-}
-
-
-  .modal-content {
-    background: var(--light);
-    padding: 2rem;
-    border-radius: 1rem;
-    width: 95%;
-    max-width: 900px;
-    max-height: 85%;
-    overflow-y: auto;
-    box-shadow: var(--shadow);
-    position: relative;
-    animation: fadeIn 0.3s ease;
-  }
-
-  .modal-header {
-    font-size: 1.625rem;
-    font-weight: bold;
-    margin-bottom: 1.25rem;
-    color: var(--primary-dark);
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 0.75rem;
-    right: 1rem;
-    font-size: 2rem;
-    background: none;
-    border: none;
-    color: var(--secondary);
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .close-btn:hover {
-    color: #b91c1c;
-  }
-
-  .product-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-bottom: 1rem;
-  }
-  .product-table th, .product-table td {
-    padding: 1rem 1.25rem;
-    font-size: 1.125rem;
-    text-align: left;
-  }
-  .product-table thead th {
-    background: var(--primary-dark);
-    color: white;
-    font-weight: 600;
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
-  }
-  .product-table tbody tr {
-    border-bottom: 1px solid #e5e7eb;
-  }
-  .product-table td {
-    background: var(--bg);
-    border: 1px solid #e5e7eb;
-    border-top: none;
-  }
-
-  /* ---------------------- Complete Button ---------------------- */
-  .complete-btn {
-    background: var(--success);
-    border: none;
-    color: white;
-    padding: 0.75rem 1.75rem;
-    border-radius: 9999px;
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-top: 1.5rem;
-    cursor: pointer;
-    display: none;
-    transition: all 0.25s;
-    box-shadow: 0 4px 10px rgba(22,163,74,0.3);
-  }
-  .complete-btn:hover {
-    background: #15803d;
-    transform: translateY(-2px);
-  }
-  .complete-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  /* ---------------------- Toast ---------------------- */
-  .toast {
-    position: fixed;
-    top: 1.25rem;
-    right: 1.25rem;
-    padding: 1rem 1.5rem;
-    border-radius: 0.75rem;
-    box-shadow: var(--shadow);
-    font-size: 1.125rem;
-    opacity: 0;
-    transform: translateX(120%);
-    transition: all 0.4s ease;
-    z-index: 1000;
-    color: white;
-  }
-  .toast.show { opacity: 1; transform: translateX(0); }
-  .toast.error { background: var(--secondary); }
-  .toast.success {
-    background: linear-gradient(135deg, #16a34a, #22c55e);
-    padding: 1.5rem 2rem;
-    font-size: 1.25rem;
-    min-width: 300px;
-    box-shadow: 0 10px 30px rgba(22, 163, 74, 0.3);
-  }
-
-  /* ---------------------- Animations ---------------------- */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  @media (max-width: 768px) {
-    .supplier-name { font-size: 1.375rem; }
-    .order-id { font-size: 1rem; }
-    .modal-content { padding: 1.25rem; }
-  }
+  .spinner{display:inline-block;width:32px;height:32px;border:4px solid #e2e8f0;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
-
 <body>
+
 <header>
-  <img src="images/wt_img.png" alt="company logo">
+  <img src="images/wt_img.png" alt="KIET Logo">
   <div class="user-info">
-    <div class="user-avatar">SO</div>
-    <span>Security Officer</span>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="avatar">SO</div>
+    <span style="font-weight:600">Security Officer</span>
+    <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
   </div>
 </header>
 
 <div class="container">
-  <h2>Security Verification</h2>
+  <h2><i class="fas fa-shield-alt"></i> Security Verification</h2>
 
-  <div class="filter-wrapper">
-    <input type="text" id="po-filter" placeholder="Enter PO number...">
+  <div class="chips">
+    <div class="chip pending"><i class="fas fa-hourglass-half"></i> Pending: <strong id="cnt-pending">0</strong></div>
+    <div class="chip receiving"><i class="fas fa-truck-loading"></i> Now Receiving: <strong id="cnt-receiving">0</strong></div>
   </div>
 
-  <div class="orders-container">
-    <div id="orderList"></div>
+  <div class="toolbar">
+    <input type="text" id="search-inp" placeholder="🔍  Search PO number or supplier..." oninput="renderTable()">
+    <div class="filter-btns">
+      <button class="fbtn active" id="fb-all"      onclick="setFilter('all')">All</button>
+      <button class="fbtn"        id="fb-pending"  onclick="setFilter('pending')">Pending</button>
+      <button class="fbtn"        id="fb-receiving" onclick="setFilter('receiving')">Now Receiving</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>PO Number</th>
+          <th>Supplier</th>
+          <th>Project</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>GRNs</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="order-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<div id="toast" class="toast"></div>
+<!-- GRN Modal -->
+<div class="modal" id="grnModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="grn-title">Add GRN</h3>
+      <button class="close-x" onclick="closeGrn()">&times;</button>
+    </div>
+    <div class="modal-body" id="grn-body"></div>
+  </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal" id="histModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="hist-title">GRN History</h3>
+      <button class="close-x" onclick="closeHist()">&times;</button>
+    </div>
+    <div class="modal-body" id="hist-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-  const orderList = document.getElementById('orderList');
-  const toast = document.getElementById('toast');
-  const poFilterInput = document.getElementById('po-filter');
-  let orders = [];
+  let allOrders = [];
+  let activeFilter = 'all';
+  let activeOrderId = null;
+  let activeItems = [];
+  // grn counts cache: { orderId: count }
+  const grnCounts = {};
 
   document.addEventListener('DOMContentLoaded', loadOrders);
-  poFilterInput.addEventListener('input', populateOrderList);
 
   async function loadOrders() {
     try {
-      const response = await fetch('/api/orders/search/filter?status=sent', { credentials: 'include' });
-      if (!response.ok) return showToast("Failed to load orders", true);
+      const [r1, r2] = await Promise.all([
+        fetch('/api/orders/search/filter?status=sent',      { credentials:'include' }),
+        fetch('/api/orders/search/filter?status=receiving', { credentials:'include' })
+      ]);
+      const pending   = r1.ok ? await r1.json() : [];
+      const receiving = r2.ok ? await r2.json() : [];
 
-      const orderIds = await response.json();
-      orders = [];
+      document.getElementById('cnt-pending').textContent   = pending.length;
+      document.getElementById('cnt-receiving').textContent = receiving.length;
 
-      for (const order of orderIds) {
-        const detailResponse = await fetch(`/api/orders/${order.id}`, { credentials: 'include' });
-        if (detailResponse.ok) {
-          orders.push(await detailResponse.json());
-        }
-      }
-      populateOrderList();
-    } catch (error) {
-      console.error(error);
-      showToast("Error loading orders", true);
+      allOrders = [
+        ...pending.map(o   => ({ ...o, tabStatus:'pending' })),
+        ...receiving.map(o => ({ ...o, tabStatus:'receiving' }))
+      ];
+
+      // Load GRN counts for receiving orders
+      await Promise.all(receiving.map(async o => {
+        try {
+          const res = await fetch(`/api/security/grns/${o.id}`, { credentials:'include' });
+          const grns = res.ok ? await res.json() : [];
+          grnCounts[o.id] = grns.length;
+        } catch { grnCounts[o.id] = 0; }
+      }));
+
+      renderTable();
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to load orders', true);
     }
   }
 
-  function populateOrderList() {
-    orderList.innerHTML = '';
-    const filterText = poFilterInput.value.toLowerCase();
-
-    orders.filter(order => order.po_number.toLowerCase().includes(filterText))
-      .forEach(order => createOrderCard(order));
+  function setFilter(f) {
+    activeFilter = f;
+    ['all','pending','receiving'].forEach(k => {
+      document.getElementById('fb-'+k).classList.toggle('active', k === f);
+    });
+    renderTable();
   }
 
-  function createOrderCard(order) {
-    const orderCard = document.createElement('div');
-    orderCard.className = 'order-card';
-    orderCard.setAttribute('data-id', order.id);
+  function renderTable() {
+    const search = document.getElementById('search-inp').value.toLowerCase();
+    const tbody  = document.getElementById('order-tbody');
 
-    const toggleButtonId = `toggle-btn-${order.id}`;
-    const modalId = `modal-${order.id}`;
-    const productListId = `product-list-${order.id}`;
+    const filtered = allOrders.filter(o => {
+      const matchFilter = activeFilter === 'all' || o.tabStatus === activeFilter;
+      const matchSearch = !search ||
+        (o.po_number||'').toLowerCase().includes(search) ||
+        (o.supplier||'').toLowerCase().includes(search);
+      return matchFilter && matchSearch;
+    });
 
-    orderCard.innerHTML = `
-      <div class="order-header">
-        <div>
-          <div class="supplier-name">${order.supplier}</div>
-          <div class="order-id">${order.po_number}</div>
-        </div>
-        <button id="${toggleButtonId}" class="toggle-products-btn">
-          <i class="fas fa-clipboard-list"></i>
-        </button>
-      </div>
-    `;
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><i class="fas fa-box-open"></i>No orders found.</div></td></tr>`;
+      return;
+    }
 
-    const modalHTML = `
-      <div id="${modalId}" class="modal">
-        <div class="modal-content">
-          <button class="close-btn">&times;</button>
-          <h3 class="modal-header">Order ${order.id} - Products</h3>
-          <div class="product-list" id="${productListId}">Loading...</div>
-        </div>
-      </div>
-    `;
+    tbody.innerHTML = filtered.map((o, i) => {
+      const isPending = o.tabStatus === 'pending';
+      const date = o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '-';
+      const amt  = '₹' + Number(o.total_amount||0).toLocaleString('en-IN');
+      const statusBadge = isPending
+        ? `<span class="badge badge-pending"><i class="fas fa-hourglass-half"></i> Pending</span>`
+        : `<span class="badge badge-receiving"><i class="fas fa-truck-loading"></i> Receiving</span>`;
 
-    orderList.appendChild(orderCard);
-    orderList.insertAdjacentHTML('beforeend', modalHTML);
+      const grnCell = isPending
+        ? `<span style="color:var(--gray);font-size:.8rem">—</span>`
+        : `<span class="grn-chip"><i class="fas fa-barcode"></i> ${grnCounts[o.id] || 0} GRN(s)</span>`;
 
-    setupModalEvents(order, toggleButtonId, modalId, productListId);
+      const actions = isPending
+        ? `<div class="actions">
+             <button class="btn btn-primary" onclick="startReceiving(${o.id})"><i class="fas fa-play"></i> Start Receiving</button>
+           </div>`
+        : `<div class="actions">
+             <button class="btn btn-primary"  onclick="openGrnModal(${o.id})"><i class="fas fa-plus"></i> Add GRN</button>
+             <button class="btn btn-warning"  onclick="openHistModal(${o.id},'${esc(o.supplier||'')}')"><i class="fas fa-history"></i> History</button>
+             <button class="btn btn-success"  onclick="completeOrder(${o.id})"><i class="fas fa-check-double"></i> Received</button>
+             <button class="btn btn-gray"     onclick="revertToPending(${o.id})"><i class="fas fa-undo"></i> Pending</button>
+           </div>`;
+
+      return `<tr>
+        <td style="color:var(--gray);font-size:.8rem">${i+1}</td>
+        <td><strong>${esc(o.po_number||'N/A')}</strong></td>
+        <td>${esc(o.supplier||'-')}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(o.project||'')}">${esc(o.project||'-')}</td>
+        <td>${amt}</td>
+        <td>${date}</td>
+        <td>${statusBadge}</td>
+        <td>${grnCell}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join('');
   }
 
-  function setupModalEvents(order, toggleBtnId, modalId, productListId) {
-    const toggleBtn = document.getElementById(toggleBtnId);
-    const modal = document.getElementById(modalId);
-    const productListDiv = modal.querySelector('.product-list');
-    const closeBtn = modal.querySelector('.close-btn');
+  // ── Start Receiving ──────────────────────────────────────────────────────────
+  async function startReceiving(orderId) {
+    try {
+      const res = await fetch(`/api/orders/${orderId}/receive`, { method:'PUT', credentials:'include' });
+      if (!res.ok) return showToast('Failed to start receiving', true);
+      showToast('Order moved to Now Receiving ✅');
+      await loadOrders();
+    } catch { showToast('Error', true); }
+  }
 
-    toggleBtn.addEventListener('click', async () => {
-      modal.style.display = 'flex';
-      if (!productListDiv.dataset.loaded) {
-        try {
-          const res = await fetch(`/api/orders/${order.id}/items`, { credentials: 'include' });
-          if (!res.ok) return showToast("Failed to load order items", true);
+  // ── Revert to Pending ────────────────────────────────────────────────────────
+  async function revertToPending(orderId) {
+    if (!confirm('Move this order back to Pending?\nAny GRNs already saved will remain.')) return;
+    try {
+      const res = await fetch(`/api/security/revert/${orderId}`, { method:'PUT', credentials:'include' });
+      if (!res.ok) return showToast('Failed to revert order', true);
+      showToast('Order moved back to Pending ↩️');
+      await loadOrders();
+    } catch { showToast('Error', true); }
+  }
 
-          const items = await res.json();
-          let html = `<table class="product-table"><thead>
-            <tr><th>Product</th><th>Quantity</th><th>Verify</th></tr>
-          </thead><tbody>`;
-          items.forEach(item => {
-            html += `<tr>
-              <td>${item.description}</td>
-              <td>${item.quantity}</td>
-              <td><input type="checkbox"  class="verify-checkbox" data-order-id="${order.id}" data-item-id="${item.id}" ></td>
-            </tr>`;
-          });
-          html += `</tbody></table>
-            <button class="complete-btn" data-order-id="${order.id}" disabled>Submit</button>`;
-          productListDiv.innerHTML = html;
+  // ── Add GRN Modal ────────────────────────────────────────────────────────────
+  async function openGrnModal(orderId) {
+    activeOrderId = orderId;
+    document.getElementById('grn-title').textContent = 'Add GRN — Select Items & Quantities';
+    const body = document.getElementById('grn-body');
+    body.innerHTML = '<div style="text-align:center;padding:2rem"><div class="spinner"></div></div>';
+    document.getElementById('grnModal').classList.add('open');
 
-          const checkboxes = productListDiv.querySelectorAll('.verify-checkbox');
-          const completeBtn = productListDiv.querySelector('.complete-btn');
+    try {
+      const res = await fetch(`/api/orders/${orderId}/items`, { credentials:'include' });
+      if (!res.ok) throw new Error();
+      activeItems = await res.json();
 
-          checkboxes.forEach(cb => cb.addEventListener('change', () => {
-            const allChecked = Array.from(checkboxes).every(c => c.checked);
-            completeBtn.disabled = !allChecked;
-            completeBtn.style.display = allChecked ? 'block' : 'none';
-          }));
+      if (!activeItems.length) {
+        body.innerHTML = '<p style="color:var(--gray)">No items found for this order.</p>';
+        return;
+      }
 
-          completeBtn.addEventListener('click', async () => await completeOrder(order.id));
-          productListDiv.dataset.loaded = 'true';
-        } catch (error) {
-          console.error(error);
-          showToast("Error loading order items", true);
-        }
+      body.innerHTML = `
+        <p style="margin-bottom:1rem;color:var(--gray);font-size:.88rem">
+          <i class="fas fa-info-circle"></i> Select the items being received now and enter the received quantity.
+        </p>
+        <table class="itbl">
+          <thead><tr><th>✓</th><th>Description</th><th>Part No.</th><th>Ordered Qty</th><th>Received Qty</th></tr></thead>
+          <tbody>
+            ${activeItems.map((item, i) => `
+              <tr>
+                <td><input type="checkbox" class="item-chk" data-idx="${i}" onchange="toggleQty(this,${i})"></td>
+                <td>${esc(item.description||'')}</td>
+                <td>${esc(item.part_no||'-')}</td>
+                <td>${item.quantity||0} ${esc(item.unit||'')}</td>
+                <td>
+                  <input type="number" id="qty-${i}" class="qty-inp" min="1" max="${item.quantity||9999}" value="${item.quantity||1}" disabled>
+                  <div style="font-size:.72rem;color:var(--gray);text-align:center">Max: ${item.quantity||'∞'}</div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        <div style="text-align:right">
+          <button class="btn btn-success" id="save-grn-btn" onclick="saveGrn()" disabled>
+            <i class="fas fa-save"></i> Save GRN
+          </button>
+        </div>`;
+
+      document.querySelectorAll('.item-chk').forEach(cb => cb.addEventListener('change', updateSaveBtn));
+    } catch {
+      body.innerHTML = '<p style="color:var(--danger)">Failed to load items.</p>';
+    }
+  }
+
+  function toggleQty(cb, i) {
+    document.getElementById(`qty-${i}`).disabled = !cb.checked;
+    updateSaveBtn();
+  }
+  function updateSaveBtn() {
+    const any = Array.from(document.querySelectorAll('.item-chk')).some(c => c.checked);
+    document.getElementById('save-grn-btn').disabled = !any;
+  }
+
+  async function saveGrn() {
+    const btn = document.getElementById('save-grn-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    const items = [];
+    document.querySelectorAll('.item-chk').forEach((cb, i) => {
+      if (cb.checked) {
+        const item = activeItems[i];
+        items.push({
+          item_id: item.id,
+          description: item.description,
+          ordered_qty: item.quantity,
+          received_qty: parseInt(document.getElementById(`qty-${i}`).value) || 1
+        });
       }
     });
 
-    closeBtn.addEventListener('click', () => modal.style.display = 'none');
-    modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
-  }
-
-  async function completeOrder(orderId) {
     try {
-      const res = await fetch(`/api/orders/${orderId}/receive`, { method: 'PUT', credentials: 'include' });
-      if (!res.ok) return showToast("Failed to complete order", true);
+      const res = await fetch('/api/security/grns', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ purchase_order_id: activeOrderId, items })
+      });
       const data = await res.json();
-      showToast(`Order completed successfully! Generated GRN: <strong>${data.genNumber}</strong>`);
-      loadOrders();
-    } catch (error) {
-      console.error(error);
-      showToast("Error completing order", true);
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      showToast(`GRN Created: ${data.grn_number} ✅`);
+      grnCounts[activeOrderId] = (grnCounts[activeOrderId] || 0) + 1;
+      closeGrn();
+      renderTable();
+    } catch (err) {
+      showToast(err.message || 'Error saving GRN', true);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-save"></i> Save GRN';
     }
   }
 
-  function showToast(message, isError = false) {
-    toast.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'}"></i> ${message}`;
-    toast.className = `toast ${isError ? 'error' : 'success'} show`;
-    setTimeout(() => toast.className = 'toast', 20000);
+  function closeGrn() { document.getElementById('grnModal').classList.remove('open'); }
+
+  // ── GRN History Modal ────────────────────────────────────────────────────────
+  async function openHistModal(orderId, supplier) {
+    document.getElementById('hist-title').textContent = `GRN History — ${supplier}`;
+    const body = document.getElementById('hist-body');
+    body.innerHTML = '<div style="text-align:center;padding:2rem"><div class="spinner"></div></div>';
+    document.getElementById('histModal').classList.add('open');
+
+    try {
+      const res = await fetch(`/api/security/grns/${orderId}`, { credentials:'include' });
+      const grns = res.ok ? await res.json() : [];
+
+      if (!grns.length) {
+        body.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i>No GRNs created yet.</div>';
+        return;
+      }
+
+      body.innerHTML = grns.map(g => `
+        <div style="margin-bottom:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:.65rem .9rem;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer"
+               onclick="toggleDetail('d-${g.grn_number}',${orderId},'${g.grn_number}')">
+            <span class="grn-chip" style="font-size:.9rem"><i class="fas fa-barcode"></i> ${esc(g.grn_number)}</span>
+            <span style="color:var(--gray);font-size:.8rem">${new Date(g.created_at).toLocaleString('en-IN')}</span>
+          </div>
+          <div id="d-${g.grn_number}" style="display:none;margin-top:.4rem;padding:.75rem;background:#fff;border:1px solid #e2e8f0;border-radius:8px">
+            <div style="text-align:center"><div class="spinner"></div></div>
+          </div>
+        </div>`).join('');
+    } catch {
+      body.innerHTML = '<p style="color:var(--danger)">Failed to load GRN history.</p>';
+    }
+  }
+
+  async function toggleDetail(elemId, orderId, grnNumber) {
+    const el = document.getElementById(elemId);
+    if (el.style.display === 'none') {
+      el.style.display = 'block';
+      if (el.querySelector('.spinner')) {
+        try {
+          const res = await fetch(`/api/security/grns/${orderId}/${grnNumber}`, { credentials:'include' });
+          const items = await res.json();
+          el.innerHTML = items.length
+            ? `<table class="itbl"><thead><tr><th>Description</th><th>Ordered Qty</th><th>Received Qty</th></tr></thead>
+               <tbody>${items.map(it=>`<tr><td>${esc(it.description||'')}</td><td>${it.ordered_qty||0}</td><td><strong style="color:var(--success)">${it.received_qty||0}</strong></td></tr>`).join('')}</tbody></table>`
+            : '<p style="color:var(--gray)">No items.</p>';
+        } catch { el.innerHTML = '<p style="color:var(--danger)">Failed.</p>'; }
+      }
+    } else { el.style.display = 'none'; }
+  }
+
+  function closeHist() { document.getElementById('histModal').classList.remove('open'); }
+
+  // ── Complete ─────────────────────────────────────────────────────────────────
+  async function completeOrder(orderId) {
+    if (!confirm('Mark this order as fully Received? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/api/security/complete/${orderId}`, { method:'PUT', credentials:'include' });
+      if (!res.ok) return showToast('Failed to complete order', true);
+      showToast('Order marked as Received ✅');
+      await loadOrders();
+    } catch { showToast('Error', true); }
+  }
+
+  // ── Utilities ────────────────────────────────────────────────────────────────
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    t.innerHTML = `<i class="fas fa-${isError?'exclamation-triangle':'check-circle'}"></i> ${msg}`;
+    t.className = `toast ${isError?'error':'success'} show`;
+    setTimeout(() => t.className='toast', 4000);
   }
 
   function logout() {
-    showToast("Logged out successfully!");
-    setTimeout(() => window.location.href = "/", 1000);
+    fetch('/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='/');
   }
+
+  document.getElementById('grnModal').addEventListener('click', e => { if(e.target.id==='grnModal') closeGrn(); });
+  document.getElementById('histModal').addEventListener('click', e => { if(e.target.id==='histModal') closeHist(); });
 </script>
 </body>
 </html>
