@@ -653,6 +653,7 @@ app.get("/api/orders/search/filter", async (req, res) => {
     let query = `
             SELECT
                 id,
+                po_number,
                 purchase_order_number as order_id,
                 project_name as project,
                 supplier_name as supplier,
