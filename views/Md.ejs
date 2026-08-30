@@ -4330,12 +4330,12 @@ function resetFields() {
                   </tr>
                 </thead>
                 <tbody id="kietTableBody">
-                  <% const items = [
-                    { description: "Standard Housing", cost: 135459.52, qty: 1, value: 135459.52 },
-                    { description: "Hypertek parts and pins (Wiring class-2)", cost: 2.86, qty: 35000, value: 100418.42, hasClass: true },
-                    { description: "SOK 10150", cost: 10600.00, qty: 1, value: 10600.00 },
-                    { description: "Koaxial-Stift-Radial", cost: 4770.00, qty: 1, value: 4770.00 },
-                  ]; %>
+                 <% const vkItems = [
+    { description: "Basic price Wiring box", cost: 154423.85, qty: 1, value: 154423.85 },
+    { description: "Hypertek parts and pins (Wiring class-2)", cost: 315.34, qty: 350, value: 110369.00, hasClass: true },
+    { description: "SOK CARDS 1050,1072 & 614", cost: 12084.00, qty: 1, value: 12084.00 },
+    { description: "4130189714 Koaxial-Stift-Radiall", cost: 5437.80, qty: 1, value: 5437.80 },
+]; %>
 
                   <% items.forEach((item, index) => { %>
                     <tr class="kiet-row">
@@ -4368,18 +4368,9 @@ function resetFields() {
                         <% if (item.hasClass) { %>
                           <select style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; transition: border 0.3s; -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6,9 12,15 18,9\'/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 40px;"
  class="class-select" data-index="<%= index %>">
-                            <option value="1" data-cost="280.11">Class 1 - ₹ 280.11</option>
-                            <option value="2" data-cost="213.33" selected>Class 2 - ₹ 213.33</option>
-                            <option value="3" data-cost="199.02">Class 3 - ₹ 199.02</option>
-                            <option value="4" data-cost="190.01">Class 4 - ₹ 190.01</option>
-                            <option value="5" data-cost="181.53">Class 5 - ₹ 181.53</option>
-                            <option value="6" data-cost="175.17">Class 6 - ₹ 175.17</option>
-                            <option value="7" data-cost="164.57">Class 7 - ₹ 164.57</option>
-                            <option value="8" data-cost="161.39">Class 8 - ₹ 161.39</option>
-                            <option value="9" data-cost="157.15">Class 9 - ₹ 157.15</option>
-                            <option value="10" data-cost="157.15">Class 10 - ₹ 157.15</option>
-                            <option value="11" data-cost="155.03">Class 11 - ₹ 155.03</option>
-                            <option value="12" data-cost="153.00">Class 12 - ₹ 153.00</option>
+                           <option value="1" data-cost="319.33">Class 1 - ₹ 319.33</option>
+    <option value="2" data-cost="315.34" selected>Class 2 - ₹ 315.34</option>
+    <option value="3" data-cost="311.00">Class 3 - ₹ 311.00</option>
                           </select>
                           <input type="hidden" name="priceInput[]" value="<%= item.cost.toFixed(2) %>" class="price-input-hidden" data-index="<%= index %>">
                         <% } else { %>
@@ -4407,15 +4398,15 @@ function resetFields() {
                   </tr>
                   <tr>
                     <td><strong>Export packaging charges included</strong></td>
-                    <td><div style="display: flex; align-items: center;"><span class="currency-symbol">₹</span> <input type="number" step="0.01" value="2650.00" class="price-input" data-index="export" name="priceInput[]"></div></td>
+                    <td><div style="display: flex; align-items: center;"><span class="currency-symbol">₹</span> <input type="number" step="0.01" value="3021.00" class="price-input" data-index="export" name="priceInput[]"></div></td>
                     <td></td>
-                    <td><span class="currency-symbol">₹</span> <span class="value-display">2650.00</span></td>
+                    <td><span class="currency-symbol">₹</span> <span class="value-display">3021.00</span></td>
                   </tr>
                   <tr>
                     <td>Bigger box setup</td>
-                    <td><div style="display: flex; align-items: center;"><span class="currency-symbol">₹</span> <input type="number" step="0.01" value="13250.00" class="price-input" data-index="box" name="priceInput[]"></div></td>
+                    <td><div style="display: flex; align-items: center;"><span class="currency-symbol">₹</span> <input type="number" step="0.01" value="15105.00" class="price-input" data-index="box" name="priceInput[]"></div></td>
                     <td></td>
-                    <td><span class="currency-symbol">₹</span> <span class="value-display">13250.00</span></td>
+                    <td><span class="currency-symbol">₹</span> <span class="value-display">15105.00</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -7635,50 +7626,26 @@ For detailed technical documentation, please contact the development team.`);
       const pvTableBody = document.getElementById('pvTableBody');
 
       // Class prices for different quantities
-      const originalPrices = [
-        { class: 1, cost: 280.11 },
-        { class: 2, cost: 213.33 },
-        { class: 3, cost: 199.02 },
-        { class: 4, cost: 190.01 },
-        { class: 5, cost: 181.53 },
-        { class: 6, cost: 175.17 },
-        { class: 7, cost: 164.57 },
-        { class: 8, cost: 161.39 },
-        { class: 9, cost: 157.15 },
-        { class: 10, cost: 157.15 },
-        { class: 11, cost: 155.03 },
-        { class: 12, cost: 153.00 }
-      ];
+                  // 1 Box tier
+            const originalPrices = [
+                { class: 1, cost: 319.33 },
+                { class: 2, cost: 315.34 },
+                { class: 3, cost: 311.00 }
+            ];
 
-      const qty2Prices = [
-        { class: 1, cost: 276.62 },
-        { class: 2, cost: 211.14 },
-        { class: 3, cost: 197.12 },
-        { class: 4, cost: 188.28 },
-        { class: 5, cost: 179.97 },
-        { class: 6, cost: 173.73 },
-        { class: 7, cost: 163.34 },
-        { class: 8, cost: 160.22 },
-        { class: 9, cost: 158.14 },
-        { class: 10, cost: 156.06 },
-        { class: 11, cost: 153.99 },
-        { class: 12, cost: 152.00 }
-      ];
+            // 2 - 10 Boxes tier
+            const qty2Prices = [
+                { class: 1, cost: 315.34 },
+                { class: 2, cost: 311.00 },
+                { class: 3, cost: 297.50 }
+            ];
 
-      const qtyAbove2Prices = [
-        { class: 1, cost: 274.92 },
-        { class: 2, cost: 210.08 },
-        { class: 3, cost: 196.18 },
-        { class: 4, cost: 187.44 },
-        { class: 5, cost: 179.21 },
-        { class: 6, cost: 173.03 },
-        { class: 7, cost: 162.74 },
-        { class: 8, cost: 159.66 },
-        { class: 9, cost: 157.60 },
-        { class: 10, cost: 155.54 },
-        { class: 11, cost: 153.48 },
-        { class: 12, cost: 151.50 }
-      ];
+            // > 10 Boxes tier
+            const qtyAbove2Prices = [
+                { class: 1, cost: 313.50 },
+                { class: 2, cost: 297.50 },
+                { class: 3, cost: 293.50 }
+            ];
 
       function updateValue(input, valueDisplay) {
         const cost = parseFloat(input.getAttribute('data-cost'));
@@ -7718,20 +7685,12 @@ For detailed technical documentation, please contact the development team.`);
         updateTotalCosts();
       }
 
-      function getClassFromQty(qty) {
-        if (qty >= 1 && qty <= 300) return 1;
-        if (qty >= 301 && qty <= 500) return 2;
-        if (qty >= 501 && qty <= 600) return 3;
-        if (qty >= 601 && qty <= 700) return 4;
-        if (qty >= 701 && qty <= 800) return 5;
-        if (qty >= 801 && qty <= 900) return 6;
-        if (qty >= 901 && qty <= 1100) return 7;
-        if (qty >= 1101 && qty <= 1200) return 8;
-        if (qty >= 1201 && qty <= 1300) return 9;
-        if (qty >= 1301 && qty <= 1400) return 10;
-        if (qty >= 1401 && qty <= 1500) return 11;
-        return 12; // default
-      }
+                  function getClassFromQty(qty) {
+                if (qty >= 1 && qty <= 850) return 1;
+                if (qty >= 851 && qty <= 1200) return 2;
+                if (qty >= 1201 && qty <= 1600) return 3;
+                return 3; // default/cap for > 1600 lines
+            }
 
       function updateClassOptions() {
         const classSelect = document.querySelector('.class-select[data-index="1"]');
@@ -7745,13 +7704,13 @@ For detailed technical documentation, please contact the development team.`);
         });
 
         let prices;
-        if (totalPvQty > 2) {
-          prices = qtyAbove2Prices;
-        } else if (totalPvQty == 2) {
-          prices = qty2Prices;
-        } else {
-          prices = originalPrices;
-        }
+        if (totalPvQty > 10) {
+    prices = qtyAbove2Prices;
+} else if (totalPvQty >= 2) {
+    prices = qty2Prices;
+} else {
+    prices = originalPrices;
+}
         classSelect.innerHTML = '';
 
         prices.forEach(price => {

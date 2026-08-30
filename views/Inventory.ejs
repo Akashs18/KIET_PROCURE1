@@ -756,7 +756,7 @@
             <input type="hidden" id="po-hidden-store" name="order_id">
             <div class="autocomplete-box" id="po-suggestions-store"></div>
           </div>
-
+          <div class="form-section-label">Project Code:<p class="code"></p></div>
           <div class="form-group" style="margin-bottom:16px">
             <label>GRN Number <span class="req">*</span></label>
             <div class="grn-row">
@@ -1695,16 +1695,19 @@ function setupAutocomplete(inputId, hiddenId, suggestId) {
         if (!orders.length) { box.style.display='none'; return; }
         orders.forEach(o => {
           const item = document.createElement('div');
+          
           item.className = 'ac-item';
           item.innerHTML = `<strong>${o.po_number}</strong><small>${o.project} | ${o.supplier}</small>`;
           item.onclick = () => {
             input.value  = `${o.po_number} — ${o.project}`;
             hidden.value = o.id;
             box.style.display = 'none';
+            document.querySelector('.code').innerHTML = o.order_id;
           };
           box.appendChild(item);
         });
         box.style.display = 'block';
+        
       } catch(e) { if(e.name!=='AbortError') console.error(e); }
     }, 300);
   });
